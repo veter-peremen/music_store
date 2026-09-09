@@ -1,5 +1,6 @@
 const express = require('express');
 
+const rootRouter = require('./routes/root');
 const healthRouter = require('./routes/health');
 const genresRouter = require('./routes/genres');
 const musiciansRouter = require('./routes/musicians');
@@ -15,6 +16,7 @@ function createApp() {
 
   app.use(express.json());
 
+  app.use('/', rootRouter);
   app.use('/health', healthRouter);
   app.use('/genres', genresRouter);
   app.use('/musicians', musiciansRouter);
