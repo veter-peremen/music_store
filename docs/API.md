@@ -156,3 +156,46 @@ curl -X POST http://localhost:3000/sales \
   -H 'Content-Type: application/json' -d '{"record_id":1,"quantity":1}'
 # 409 {"error":{"code":"RECORD_ARCHIVED","message":"Пластинка находится в архиве: движения по ней запрещены"}}
 ```
+
+## Отчёты
+
+| Метод | Путь                           | Описание                                         |
+| ----- | ------------------------------ | ------------------------------------------------ |
+| GET   | `/reports/top-sellers?limit=N` | лидеры продаж; `limit` — 1..100, по умолчанию 10 |
+
+Позиции отсортированы по числу проданных копий (при равенстве — по выручке, затем по названию).
+Архивные пластинки остаются в отчёте с флагом `archived: true`: история продаж неуничтожима.
+
+```bash
+curl 'http://localhost:3000/reports/top-sellers?limit=2'
+```
+
+```json
+{
+  "total_revenue": "55800.00",
+  "total_quantity": 13,
+  "positions": 2,
+  "items": [
+    {
+      "record_id": 9,
+      "title": "The Dark Side of the Moon",
+      "musician": "Pink Floyd",
+      "genre": "Rock",
+      "archived": false,
+      "sales_count": 2,
+      "total_quantity": 8,
+      "revenue": "36000.00",
+      "revenue_share": "64.5"
+    }
+  ]
+}
+```
+
+| Поле                               | Смысл                              |
+| ---------------------------------- | ---------------------------------- |
+| `total_revenue` / `total_quantity` | итоги по попавшим в отчёт позициям |
+| `positions`                        | число позиций в отчёте             |
+| `sales_count`                      | сколько было сделок по пластинке   |
+| `total_quantity`                   | сколько копий продано              |
+| `revenue`                          | выручка по позиции                 |
+| `revenue_share`                    | доля позиции в выручке отчёта, %   |
