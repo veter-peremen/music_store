@@ -5,6 +5,7 @@ const genresRouter = require('./routes/genres');
 const musiciansRouter = require('./routes/musicians');
 const recordsRouter = require('./routes/records');
 const salesRouter = require('./routes/sales');
+const reportsRouter = require('./routes/reports');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -19,6 +20,7 @@ function createApp() {
   app.use('/musicians', musiciansRouter);
   app.use('/records', recordsRouter);
   app.use('/sales', salesRouter);
+  app.use('/reports', reportsRouter);
 
   app.use(notFound);
   app.use(errorHandler);
