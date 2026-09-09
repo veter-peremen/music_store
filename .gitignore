@@ -1,0 +1,27 @@
+# зависимости
+node_modules/
+
+# секреты и локальная конфигурация
+.env
+.env.local
+*.local
+
+# сборка и отчёты
+coverage/
+dist/
+build/
+
+# логи
+*.log
+npm-debug.log*
+
+# системное
+.DS_Store
+Thumbs.db
+
+# редакторы
+.idea/
+.vscode/
+
+# инструкции
+tasks/
