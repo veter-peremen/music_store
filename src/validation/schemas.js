@@ -42,6 +42,9 @@ const recordListQuery = z.object({
   archived: archivedFilter,
 });
 const musicianListQuery = z.object({ archived: archivedFilter });
+const topSellersQuery = z.object({
+  limit: z.coerce.number().int().positive().max(100).default(10),
+});
 
 /** Разбирает данные схемой и превращает ошибку zod в ValidationError (HTTP 400). */
 function parse(schema, data) {
@@ -69,4 +72,5 @@ module.exports = {
   receiptCreate,
   recordListQuery,
   musicianListQuery,
+  topSellersQuery,
 };

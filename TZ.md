@@ -85,7 +85,7 @@
 
 - `POST /records/:id/receipts` — оформить поступление; `GET /receipts`.
 - `POST /sales` (тело: `record_id`, `quantity`) — оформить продажу; `GET /sales`.
-- `GET /reports/top-sellers` — лидеры продаж (опционально).
+- `GET /reports/top-sellers?limit=N` — лидеры продаж: количество, выручка и доля позиции в выручке. Архивные пластинки остаются в отчёте с флагом `archived`.
 
 ## 7. Обработка ошибок
 
