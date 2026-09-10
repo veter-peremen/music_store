@@ -12,6 +12,7 @@ router.get('/', (_req, res) => {
     name: 'music-store',
     description,
     version,
+    docs: 'docs/API.md',
     resources: {
       health: ['GET /health', 'GET /health/ready'],
       genres: ['GET /genres', 'POST /genres', 'PATCH /genres/:id', 'DELETE /genres/:id'],
