@@ -18,7 +18,7 @@ function createApp() {
 
   app.use(express.json());
 
-  app.use('/', rootRouter);
+  app.use('/api', rootRouter);
   app.use('/health', healthRouter);
   app.use('/genres', genresRouter);
   app.use('/musicians', musiciansRouter);
@@ -26,9 +26,10 @@ function createApp() {
   app.use('/sales', salesRouter);
   app.use('/reports', reportsRouter);
 
-  // Веб-интерфейс. Смонтирован на /ui, а не на корень: корень отдаёт
-  // индекс API, он описан в ТЗ и покрыт тестом.
-  app.use('/ui', express.static(path.join(__dirname, '..', 'public')));
+  // Веб-интерфейс занимает корень. Ресурсы API остаются на своих адресах
+  // (/records, /sales и прочие), а индекс API уехал на /api — статика
+  // подключена последней, поэтому маршруты API она не перехватывает.
+  app.use(express.static(path.join(__dirname, '..', 'public')));
 
   app.use(notFound);
   app.use(errorHandler);
