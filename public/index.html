@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Музыкальный магазин — складской учёт</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Музыкальный магазин</h1>
+      <span id="health" class="health" title="Состояние сервера">проверяем…</span>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-view="catalog" aria-current="true">Каталог</button>
+      <button class="tab" data-view="musicians">Музыканты</button>
+      <button class="tab" data-view="genres">Жанры</button>
+      <button class="tab" data-view="sales">Продажи</button>
+      <button class="tab" data-view="report">Отчёт</button>
+    </nav>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <main>
+      <!-- Каталог -->
+      <section class="view" id="view-catalog">
+        <div class="panel">
+          <h2>Каталог пластинок</h2>
+          <div class="filters">
+            <label
+              >Музыкант
+              <select id="f-musician">
+                <option value="">все</option>
+              </select></label
+            >
+            <label
+              >Жанр
+              <select id="f-genre">
+                <option value="">все</option>
+              </select></label
+            >
+            <label>
+              Показывать
+              <select id="f-archived">
+                <option value="false">в каталоге</option>
+                <option value="true">в архиве</option>
+                <option value="all">все</option>
+              </select>
+            </label>
+          </div>
+          <table class="grid" id="records-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Музыкант</th>
+                <th>Жанр</th>
+                <th class="num">Цена</th>
+                <th class="num">Остаток</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <p class="empty" id="records-empty" hidden>Ничего не найдено.</p>
+        </div>
+
+        <div class="panel">
+          <h2>Новая пластинка</h2>
+          <form id="record-form" class="form">
+            <label>Название <input name="title" required maxlength="200" /></label>
+            <label
+              >Музыкант
+              <select name="musician_id" required></select
+            ></label>
+            <label
+              >Жанр
+              <select name="genre_id" required></select
+            ></label>
+            <label>Цена <input name="price" type="number" step="0.01" min="0.01" required /></label>
+            <label>Год <input name="year" type="number" min="1900" max="2100" /></label>
+            <label>Начальный остаток <input name="stock" type="number" min="0" value="0" /></label>
+            <button type="submit">Создать</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Музыканты -->
+      <section class="view" id="view-musicians" hidden>
+        <div class="panel">
+          <h2>Музыканты</h2>
+          <label class="inline">
+            Показывать
+            <select id="m-archived">
+              <option value="false">активные</option>
+              <option value="true">в архиве</option>
+              <option value="all">все</option>
+            </select>
+          </label>
+          <table class="grid" id="musicians-table">
+            <thead>
+              <tr>
+                <th>Имя</th>
+                <th>Страна</th>
+                <th>Жанры</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <h2>Новый музыкант</h2>
+          <form id="musician-form" class="form">
+            <label>Имя <input name="name" required maxlength="200" /></label>
+            <label>Страна <input name="country" maxlength="100" /></label>
+            <label>Заметки <textarea name="notes" maxlength="2000" rows="3"></textarea></label>
+            <button type="submit">Создать</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Жанры -->
+      <section class="view" id="view-genres" hidden>
+        <div class="panel">
+          <h2>Жанры</h2>
+          <table class="grid" id="genres-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h2>Новый жанр</h2>
+          <form id="genre-form" class="form">
+            <label>Название <input name="name" required maxlength="120" /></label>
+            <button type="submit">Создать</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Продажи -->
+      <section class="view" id="view-sales" hidden>
+        <div class="panel">
+          <h2>История продаж</h2>
+          <table class="grid" id="sales-table">
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Пластинка</th>
+                <th class="num">Кол-во</th>
+                <th class="num">Цена</th>
+                <th class="num">Сумма</th>
+                <th>Когда</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <p class="empty" id="sales-empty" hidden>Продаж пока не было.</p>
+        </div>
+      </section>
+
+      <!-- Отчёт -->
+      <section class="view" id="view-report" hidden>
+        <div class="panel">
+          <h2>Лидеры продаж</h2>
+          <label class="inline"
+            >Показать позиций <input id="r-limit" type="number" min="1" max="100" value="10"
+          /></label>
+          <table class="grid" id="report-table">
+            <thead>
+              <tr>
+                <th>Пластинка</th>
+                <th>Музыкант</th>
+                <th class="num">Продано</th>
+                <th class="num">Выручка</th>
+                <th class="num">Доля</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <p class="totals" id="report-totals"></p>
+          <p class="empty" id="report-empty" hidden>Продаж пока не было.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Диалог складской операции -->
+    <dialog id="move-dialog">
+      <form method="dialog" class="form">
+        <h3 id="move-title">Операция</h3>
+        <p id="move-subtitle" class="muted"></p>
+        <label>Количество <input id="move-qty" type="number" min="1" value="1" required /></label>
+        <menu>
+          <button value="cancel" formnovalidate>Отмена</button>
+          <button id="move-ok" value="ok" class="primary">Провести</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>

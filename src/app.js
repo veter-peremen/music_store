@@ -1,3 +1,5 @@
+const path = require('path');
+
 const express = require('express');
 
 const rootRouter = require('./routes/root');
@@ -23,6 +25,10 @@ function createApp() {
   app.use('/records', recordsRouter);
   app.use('/sales', salesRouter);
   app.use('/reports', reportsRouter);
+
+  // Веб-интерфейс. Смонтирован на /ui, а не на корень: корень отдаёт
+  // индекс API, он описан в ТЗ и покрыт тестом.
+  app.use('/ui', express.static(path.join(__dirname, '..', 'public')));
 
   app.use(notFound);
   app.use(errorHandler);
