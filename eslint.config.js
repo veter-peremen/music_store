@@ -13,6 +13,21 @@ const nodeGlobals = {
   clearTimeout: 'readonly',
 };
 
+const browserGlobals = {
+  window: 'readonly',
+  document: 'readonly',
+  fetch: 'readonly',
+  console: 'readonly',
+  setTimeout: 'readonly',
+  clearTimeout: 'readonly',
+  alert: 'readonly',
+  prompt: 'readonly',
+  confirm: 'readonly',
+  Option: 'readonly',
+  FormData: 'readonly',
+  URLSearchParams: 'readonly',
+};
+
 const jestGlobals = {
   describe: 'readonly',
   it: 'readonly',
@@ -44,5 +59,15 @@ module.exports = [
   {
     files: ['tests/**/*.js'],
     languageOptions: { globals: { ...nodeGlobals, ...jestGlobals } },
+  },
+  {
+    // Скрипты веб-интерфейса выполняются в браузере, а не в Node:
+    // другой набор глобальных объектов и обычные модули вместо CommonJS.
+    files: ['public/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'script',
+      globals: browserGlobals,
+    },
   },
 ];
