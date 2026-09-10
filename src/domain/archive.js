@@ -1,7 +1,7 @@
 const { ConflictError } = require('../errors');
 
 /**
- * Инвариант ТЗ §4.5: пластинка не может быть активна,
+ * Инвариант ТЗ §5.5: пластинка не может быть активна,
  * если её музыкант находится в архиве.
  */
 function assertCanRestoreRecord({ musicianArchivedAt }) {

@@ -21,7 +21,7 @@ function assertPositiveQuantity(quantity) {
   }
 }
 
-/** Движения запрещены по архивной пластинке (ТЗ §4.5). */
+/** Движения запрещены по архивной пластинке (ТЗ §5.5). */
 function assertNotArchived(record) {
   if (record.archived_at) {
     throw new ConflictError(
@@ -32,7 +32,7 @@ function assertNotArchived(record) {
 }
 
 /**
- * Ключевое правило предметной области (ТЗ §4.1):
+ * Ключевое правило предметной области (ТЗ §5.1):
  * нельзя продать больше, чем есть на остатке.
  */
 function assertCanSell(record, quantity) {
