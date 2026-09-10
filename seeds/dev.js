@@ -1,10 +1,9 @@
 /** Демонстрационные данные для локальной разработки. */
 exports.seed = async (knex) => {
-  await knex('sales').del();
-  await knex('receipts').del();
-  await knex('records').del();
-  await knex('musicians').del();
-  await knex('genres').del();
+  // TRUNCATE со сбросом счётчиков, а не DELETE: иначе последовательности
+  // продолжают расти, и после повторного сида id уезжают (1-4 -> 9-12),
+  // расходясь с примерами в docs/API.md. CASCADE нужен из-за внешних ключей.
+  await knex.raw('TRUNCATE sales, receipts, records, musicians, genres RESTART IDENTITY CASCADE');
 
   const genres = await knex('genres')
     .insert([{ name: 'Rock' }, { name: 'Jazz' }, { name: 'Electronic' }])
