@@ -422,9 +422,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('#m-archived').addEventListener('change', refreshMusicians);
   $('#r-limit').addEventListener('change', () => run(loadReport));
 
+  // Операцию запускает клик по кнопке, а не событие close диалога:
+  // на close полагаться ненадёжно, а confirmMove сбрасывает pendingMove
+  // синхронно, поэтому повторный вызов из close безвреден.
+  $('#move-ok').addEventListener('click', () => confirmMove());
   $('#move-dialog').addEventListener('close', (event) => {
-    if (event.target.returnValue === 'ok') confirmMove();
-    else pendingMove = null;
+    if (event.target.returnValue !== 'ok') pendingMove = null;
   });
 
   wireForm('#genre-form', '/genres', 'Жанр создан', refreshDictionaries);
