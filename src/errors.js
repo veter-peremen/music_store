@@ -27,4 +27,10 @@ class ConflictError extends AppError {
   }
 }
 
-module.exports = { AppError, ValidationError, NotFoundError, ConflictError };
+class UnauthorizedError extends AppError {
+  constructor(message = 'Требуется вход в систему', details) {
+    super(401, 'UNAUTHORIZED', message, details);
+  }
+}
+
+module.exports = { AppError, ValidationError, NotFoundError, ConflictError, UnauthorizedError };
