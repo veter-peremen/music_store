@@ -20,7 +20,11 @@ async function request(method, path, body) {
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
 
-  if (!response.ok) throw new Error(describeError(data, response.status));
+  if (!response.ok) {
+    const error = new Error(describeError(data, response.status));
+    error.status = response.status;
+    throw error;
+  }
   return data;
 }
 
@@ -62,6 +66,8 @@ async function run(action, successMessage) {
     if (successMessage) toast(successMessage);
     return result === undefined ? true : result;
   } catch (err) {
+    // 401 означает не поломку, а что операция требует входа — сразу предлагаем его.
+    if (err.status === 401) openAuth('Эта операция требует входа в систему');
     toast(err.message, true);
     return null;
   }
@@ -332,6 +338,82 @@ async function loadReport() {
     : '';
 }
 
+// ---------- вход и регистрация ----------
+
+let currentUser = null;
+
+/** Показывает в шапке, кто вошёл, и какие кнопки уместны. */
+function renderAuthState() {
+  const whoami = $('#whoami');
+  whoami.textContent = currentUser ? currentUser.login : '';
+  whoami.hidden = !currentUser;
+  $('#auth-logout').hidden = !currentUser;
+  $('#auth-open').hidden = Boolean(currentUser);
+}
+
+async function loadMe() {
+  try {
+    const data = await get('/auth/me');
+    currentUser = data.user;
+  } catch {
+    currentUser = null;
+  }
+  renderAuthState();
+}
+
+function showAuthError(message) {
+  const node = $('#auth-error');
+  node.textContent = message || '';
+  node.hidden = !message;
+}
+
+function openAuth(hint) {
+  const dialog = $('#auth-dialog');
+  if (dialog.open) return;
+  if (hint) $('#auth-hint').textContent = hint;
+  showAuthError('');
+  $('#auth-password').value = '';
+  setPasswordVisible(false);
+  dialog.showModal();
+  $('#auth-login').focus();
+}
+
+/** Переключает показ пароля: тип поля, иконка и подпись для читалок. */
+function setPasswordVisible(visible) {
+  const input = $('#auth-password');
+  const eye = $('#auth-eye');
+  input.type = visible ? 'text' : 'password';
+  eye.setAttribute('aria-pressed', String(visible));
+  eye.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
+  eye.title = visible ? 'Скрыть пароль' : 'Показать пароль';
+}
+
+/** Общий путь для входа и регистрации — отличается только адресом. */
+async function submitCredentials(path) {
+  const form = $('#auth-form');
+  if (!form.reportValidity()) return;
+
+  showAuthError('');
+  const body = { login: $('#auth-login').value.trim(), password: $('#auth-password').value };
+
+  try {
+    const data = await post(path, body);
+    currentUser = data.user;
+    renderAuthState();
+    $('#auth-dialog').close();
+    $('#auth-form').reset();
+    toast(path.endsWith('register') ? 'Учётная запись создана' : 'Вы вошли как ' + data.user.login);
+  } catch (err) {
+    showAuthError(err.message);
+  }
+}
+
+async function logout() {
+  await run(() => post('/auth/logout'), 'Вы вышли');
+  currentUser = null;
+  renderAuthState();
+}
+
 // ---------- обновление и навигация ----------
 
 async function refreshDictionaries() {
@@ -430,11 +512,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (event.target.returnValue !== 'ok') pendingMove = null;
   });
 
+  $('#auth-open').addEventListener('click', () => openAuth('Введите логин и пароль.'));
+  $('#auth-logout').addEventListener('click', logout);
+  $('#auth-cancel').addEventListener('click', () => $('#auth-dialog').close());
+  $('#auth-eye').addEventListener('click', () => {
+    setPasswordVisible($('#auth-password').type === 'password');
+  });
+  $('#auth-register').addEventListener('click', () => submitCredentials('/auth/register'));
+  $('#auth-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitCredentials('/auth/login');
+  });
+
   wireForm('#genre-form', '/genres', 'Жанр создан', refreshDictionaries);
   wireForm('#musician-form', '/musicians', 'Музыкант создан', refreshAll);
   wireForm('#record-form', '/records', 'Пластинка создана', refreshCatalog);
 
   await checkHealth();
+  await loadMe();
   await run(refreshDictionaries);
   await refreshCatalog();
 });

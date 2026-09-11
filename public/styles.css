@@ -272,3 +272,101 @@ dialog menu {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- вход и регистрация ---------- */
+
+.spacer {
+  flex: 1;
+}
+
+.whoami {
+  font-size: 13px;
+  color: var(--ink);
+}
+.whoami::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  vertical-align: 1px;
+}
+
+.linklike {
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+}
+.linklike:hover {
+  text-decoration: underline;
+}
+
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field input {
+  padding-right: 40px;
+}
+
+.eye {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.eye:hover {
+  color: var(--accent);
+}
+.eye svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+.eye[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+/* Атрибут hidden на SVG не действует: он из пространства имён HTML,
+   а внутри <svg> браузер его игнорирует. Переключаем видимость стилями. */
+.eye .eye-shut {
+  display: none;
+}
+.eye[aria-pressed='true'] .eye-open {
+  display: none;
+}
+.eye[aria-pressed='true'] .eye-shut {
+  display: block;
+}
+
+.auth-error {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fbecea;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+#auth-dialog {
+  width: 320px;
+}
+#auth-dialog .muted {
+  margin: 0 0 14px;
+  font-size: 13px;
+}
