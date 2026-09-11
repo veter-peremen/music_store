@@ -1,6 +1,7 @@
 const { COOKIE_NAME, findSessionUser } = require('../sessions');
 const { parseCookies } = require('../utils/cookies');
-const { UnauthorizedError } = require('../errors');
+const { UnauthorizedError, ForbiddenError } = require('../errors');
+const { canMutate, canManageUsers } = require('../domain/roles');
 
 /** Методы, которые ничего не меняют и потому остаются открытыми. */
 const READ_ONLY = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -26,8 +27,21 @@ async function attachUser(req, _res, next) {
  * а продавать и править справочники только свои.
  */
 function requireAuthForWrites(req, _res, next) {
-  if (READ_ONLY.has(req.method) || req.user) return next();
-  next(new UnauthorizedError('Эта операция требует входа в систему'));
+  if (READ_ONLY.has(req.method)) return next();
+  if (!req.user) return next(new UnauthorizedError('Эта операция требует входа в систему'));
+  if (!canMutate(req.user.role)) {
+    return next(new ForbiddenError('Ваша роль позволяет только просмотр'));
+  }
+  next();
 }
 
-module.exports = { attachUser, requireAuthForWrites };
+/** Управление учётными записями доступно только суперадминистратору. */
+function requireUserManager(req, _res, next) {
+  if (!req.user) return next(new UnauthorizedError('Эта операция требует входа в систему'));
+  if (!canManageUsers(req.user.role)) {
+    return next(new ForbiddenError('Управлять учётными записями может только суперадминистратор'));
+  }
+  next();
+}
+
+module.exports = { attachUser, requireAuthForWrites, requireUserManager };
