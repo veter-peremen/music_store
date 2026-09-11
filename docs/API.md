@@ -200,6 +200,29 @@ curl 'http://localhost:3000/reports/top-sellers?limit=2'
 | `revenue`                          | выручка по позиции                 |
 | `revenue_share`                    | доля позиции в выручке отчёта, %   |
 
+## Учётные записи
+
+Чтение открыто всем. Любая операция, меняющая данные, требует входа — иначе `401 UNAUTHORIZED`.
+
+| Метод | Путь             | Описание                                                |
+| ----- | ---------------- | ------------------------------------------------------- |
+| POST  | `/auth/register` | регистрация: `{ "login": "seller", "password": "..." }` |
+| POST  | `/auth/login`    | вход, те же поля                                        |
+| POST  | `/auth/logout`   | выход, закрывает текущую сессию                         |
+| GET   | `/auth/me`       | кто вошёл; отвечает `{ "user": null }`, если никто      |
+
+Логин — от 3 до 32 символов, латиница, цифры, дефис и подчёркивание; регистр не учитывается. Пароль — не короче восьми символов.
+
+Регистрация и вход кладут сессию в HttpOnly-cookie. В curl для этого нужен файл с куками:
+
+```bash
+curl -c jar.txt -X POST http://localhost:3000/auth/login   -H 'Content-Type: application/json' -d '{"login":"seller","password":"warehouse-1"}'
+
+curl -b jar.txt -X POST http://localhost:3000/genres   -H 'Content-Type: application/json' -d '{"name":"Ambient"}'
+```
+
+Неверный логин и неверный пароль дают один и тот же ответ — иначе перебором можно узнать, кто зарегистрирован.
+
 ## Индекс API
 
 | Метод | Путь   | Описание                                              |
