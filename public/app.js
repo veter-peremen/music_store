@@ -349,6 +349,12 @@ function renderAuthState() {
   whoami.hidden = !currentUser;
   $('#auth-logout').hidden = !currentUser;
   $('#auth-open').hidden = Boolean(currentUser);
+
+  const manages = Boolean(currentUser) && currentUser.role === 'superadmin';
+  $('#tab-users').hidden = !manages;
+  // Если права потеряны, а вкладка открыта — уводим в каталог,
+  // иначе человек останется смотреть на список, который уже не его.
+  if (!manages && !$('#view-users').hidden) showView('catalog');
 }
 
 async function loadMe() {
@@ -379,9 +385,9 @@ function openAuth(hint) {
 }
 
 /** Переключает показ пароля: тип поля, иконка и подпись для читалок. */
-function setPasswordVisible(visible) {
-  const input = $('#auth-password');
-  const eye = $('#auth-eye');
+function setPasswordVisible(visible, inputSelector = '#auth-password', eyeSelector = '#auth-eye') {
+  const input = $(inputSelector);
+  const eye = $(eyeSelector);
   input.type = visible ? 'text' : 'password';
   eye.setAttribute('aria-pressed', String(visible));
   eye.setAttribute('aria-label', visible ? 'Скрыть пароль' : 'Показать пароль');
@@ -412,6 +418,61 @@ async function logout() {
   await run(() => post('/auth/logout'), 'Вы вышли');
   currentUser = null;
   renderAuthState();
+}
+
+// ---------- учётные записи ----------
+
+const ROLE_TITLES = {
+  superadmin: 'Суперадминистратор',
+  staff: 'Сотрудник',
+  viewer: 'Наблюдатель',
+};
+
+async function loadUsers() {
+  const users = await get('/users');
+  const tbody = $('#users-table tbody');
+  tbody.innerHTML = '';
+
+  users.forEach((user) => {
+    const row = tbody.insertRow();
+    const isMe = currentUser && user.id === currentUser.id;
+
+    const loginCell = row.insertCell();
+    loginCell.append(user.login);
+    if (isMe) loginCell.append(badge('это вы'));
+
+    row.insertCell().append(roleSelect(user, isMe));
+    cell(row, when(user.created_at));
+
+    const actions = row.insertCell();
+    actions.className = 'actions';
+    if (!isMe) actions.append(button('Удалить', () => removeUser(user)));
+  });
+}
+
+/** Выпадающий список роли. Свою роль менять нельзя — запрет виден сразу. */
+function roleSelect(user, isMe) {
+  const select = document.createElement('select');
+  Object.entries(ROLE_TITLES).forEach(([value, title]) => {
+    select.append(new Option(title, value, false, value === user.role));
+  });
+  select.disabled = isMe;
+  select.title = isMe ? 'Свою роль менять нельзя' : 'Сменить роль';
+  select.addEventListener('change', async () => {
+    const changed = await run(
+      () => patch('/users/' + user.id, { role: select.value }),
+      'Роль изменена',
+    );
+    if (!changed) select.value = user.role;
+    await run(loadUsers);
+  });
+  return select;
+}
+
+async function removeUser(user) {
+  if (!confirm('Удалить учётную запись «' + user.login + '»? Её сессии закроются сразу.')) return;
+  await run(() => del('/users/' + user.id), 'Учётная запись удалена');
+  await run(loadUsers);
 }
 
 // ---------- обновление и навигация ----------
@@ -446,6 +507,7 @@ const loaders = {
   genres: async () => loadGenres(),
   sales: loadSales,
   report: loadReport,
+  users: loadUsers,
 };
 
 function showView(name) {
@@ -523,6 +585,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     event.preventDefault();
     submitCredentials('/auth/login');
   });
+
+  $('#user-eye').addEventListener('click', () => {
+    setPasswordVisible($('#user-password').type === 'password', '#user-password', '#user-eye');
+  });
+  wireForm('#user-form', '/users', 'Учётная запись создана', () => run(loadUsers));
 
   wireForm('#genre-form', '/genres', 'Жанр создан', refreshDictionaries);
   wireForm('#musician-form', '/musicians', 'Музыкант создан', refreshAll);
