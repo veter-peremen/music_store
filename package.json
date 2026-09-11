@@ -14,7 +14,8 @@
     "format:check": "prettier --check .",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
-    "seed": "knex seed:run"
+    "seed": "knex seed:run",
+    "grant-role": "node scripts/grant-role.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

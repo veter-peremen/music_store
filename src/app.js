@@ -4,13 +4,14 @@ const express = require('express');
 
 const rootRouter = require('./routes/root');
 const authRouter = require('./routes/auth');
+const usersRouter = require('./routes/users');
 const healthRouter = require('./routes/health');
 const genresRouter = require('./routes/genres');
 const musiciansRouter = require('./routes/musicians');
 const recordsRouter = require('./routes/records');
 const salesRouter = require('./routes/sales');
 const reportsRouter = require('./routes/reports');
-const { attachUser, requireAuthForWrites } = require('./middleware/auth');
+const { attachUser, requireAuthForWrites, requireUserManager } = require('./middleware/auth');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -30,6 +31,9 @@ function createApp() {
   // Всё, что ниже, закрыто на изменение: читать можно без входа,
   // менять — только своим. Вход и регистрация подключены выше.
   app.use(requireAuthForWrites);
+
+  // Управление учётными записями закрыто целиком, включая чтение списка.
+  app.use('/users', requireUserManager, usersRouter);
 
   app.use('/genres', genresRouter);
   app.use('/musicians', musiciansRouter);

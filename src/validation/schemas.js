@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const { ValidationError } = require('../errors');
+const { ROLES, DEFAULT_ROLE } = require('../domain/roles');
 
 /**
  * Приводит числовую строку к числу, а нечисловую оставляет строкой.
@@ -120,6 +121,13 @@ const credentials = z.object({
     .max(200, 'Пароль длиннее 200 символов'),
 });
 
+const roleField = z.enum(ROLES, {
+  errorMap: () => ({ message: `Роль должна быть одной из: ${ROLES.join(', ')}` }),
+});
+
+const userCreate = credentials.extend({ role: roleField.default(DEFAULT_ROLE) });
+const userUpdate = z.object({ role: roleField });
+
 const archivedFilter = z.enum(['false', 'true', 'all']).default('false');
 const recordListQuery = z.object({
   musician_id: positiveInt('musician_id').optional(),
@@ -164,4 +172,6 @@ module.exports = {
   musicianListQuery,
   topSellersQuery,
   credentials,
+  userCreate,
+  userUpdate,
 };

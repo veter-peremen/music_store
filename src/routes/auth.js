@@ -10,7 +10,12 @@ const { createSession, destroySession, sessionCookie, clearedCookie } = require(
 const router = express.Router();
 
 /** Наружу отдаём только безобидные поля: хеш пароля остаётся в базе. */
-const publicUser = (user) => ({ id: user.id, login: user.login, created_at: user.created_at });
+const publicUser = (user) => ({
+  id: user.id,
+  login: user.login,
+  role: user.role,
+  created_at: user.created_at,
+});
 
 /** Логины сравниваем без учёта регистра, чтобы Ivan и ivan не были разными людьми. */
 const findByLogin = (login) => db('users').whereRaw('lower(login) = lower(?)', [login]).first();
