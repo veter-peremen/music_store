@@ -3,12 +3,14 @@ const path = require('path');
 const express = require('express');
 
 const rootRouter = require('./routes/root');
+const authRouter = require('./routes/auth');
 const healthRouter = require('./routes/health');
 const genresRouter = require('./routes/genres');
 const musiciansRouter = require('./routes/musicians');
 const recordsRouter = require('./routes/records');
 const salesRouter = require('./routes/sales');
 const reportsRouter = require('./routes/reports');
+const { attachUser, requireAuthForWrites } = require('./middleware/auth');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -18,8 +20,17 @@ function createApp() {
 
   app.use(express.json());
 
+  // Опознаём пользователя до маршрутов — дальше он доступен как req.user.
+  app.use(attachUser);
+
   app.use('/api', rootRouter);
   app.use('/health', healthRouter);
+  app.use('/auth', authRouter);
+
+  // Всё, что ниже, закрыто на изменение: читать можно без входа,
+  // менять — только своим. Вход и регистрация подключены выше.
+  app.use(requireAuthForWrites);
+
   app.use('/genres', genresRouter);
   app.use('/musicians', musiciansRouter);
   app.use('/records', recordsRouter);

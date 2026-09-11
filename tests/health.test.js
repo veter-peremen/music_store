@@ -4,7 +4,18 @@ const db = require('../src/db');
 
 const app = createApp();
 
+// Проверка входа срабатывает раньше валидации тела, поэтому для проверок
+// валидации нужна сессия — иначе вместо 400 придёт 401.
+const login = `valid_${Date.now()}`;
+let cookie;
+
+beforeAll(async () => {
+  const res = await request(app).post('/auth/register').send({ login, password: 'warehouse-1' });
+  cookie = res.headers['set-cookie'][0].split(';')[0];
+});
+
 afterAll(async () => {
+  await db('users').where({ login }).del();
   await db.destroy();
 });
 
@@ -24,7 +35,7 @@ describe('Служебные маршруты', () => {
 
 describe('Валидация запросов', () => {
   it('продажа без обязательных полей отдаёт 400 с деталями', async () => {
-    const res = await request(app).post('/sales').send({});
+    const res = await request(app).post('/sales').set('Cookie', cookie).send({});
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
     expect(Array.isArray(res.body.error.details)).toBe(true);
