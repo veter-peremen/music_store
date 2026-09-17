@@ -4,14 +4,17 @@ const db = require('../src/db');
 
 const app = createApp();
 
-// Проверка входа срабатывает раньше валидации тела, поэтому для проверок
-// валидации нужна сессия — иначе вместо 400 придёт 401.
+// Проверка доступа срабатывает раньше валидации тела и раньше поиска
+// маршрута, поэтому нужна сессия с правом записи — иначе вместо 400 и 404
+// придут 401 или 403.
 const login = `valid_${Date.now()}`;
 let cookie;
 
 beforeAll(async () => {
   const res = await request(app).post('/auth/register').send({ login, password: 'warehouse-1' });
   cookie = res.headers['set-cookie'][0].split(';')[0];
+  // Саморегистрация даёт наблюдателя, а проверке валидации нужна запись.
+  await db('users').where({ login }).update({ role: 'staff' });
 });
 
 afterAll(async () => {
@@ -27,7 +30,7 @@ describe('Служебные маршруты', () => {
   });
 
   it('неизвестный маршрут отдаёт 404 в едином формате ошибки', async () => {
-    const res = await request(app).get('/no-such-route');
+    const res = await request(app).get('/no-such-route').set('Cookie', cookie);
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('NOT_FOUND');
   });

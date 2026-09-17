@@ -3,12 +3,12 @@ const { parseCookies } = require('../utils/cookies');
 const { UnauthorizedError, ForbiddenError } = require('../errors');
 const { canMutate, canManageUsers } = require('../domain/roles');
 
-/** Методы, которые ничего не меняют и потому остаются открытыми. */
+/** Методы, которые ничего не меняют: для них достаточно войти, роль не важна. */
 const READ_ONLY = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /**
  * Опознаёт пользователя по сессионной куке и кладёт его в req.user.
- * Никого не отвергает: решение принимает requireAuthForWrites.
+ * Никого не отвергает: решение принимает requireAccess.
  */
 async function attachUser(req, _res, next) {
   try {
@@ -22,13 +22,14 @@ async function attachUser(req, _res, next) {
 }
 
 /**
- * Закрывает изменяющие операции. Чтение каталога, остатков и отчётов
- * остаётся доступным без входа — смотреть витрину может кто угодно,
- * а продавать и править справочники только свои.
+ * Закрывает данные магазина от анонимов целиком: без входа нельзя ни
+ * менять, ни читать — иначе каталог утекал бы обычным curl в обход
+ * интерфейса. Вошедшим читать можно всем, менять — только ролям с правом
+ * записи.
  */
-function requireAuthForWrites(req, _res, next) {
+function requireAccess(req, _res, next) {
+  if (!req.user) return next(new UnauthorizedError('Требуется вход в систему'));
   if (READ_ONLY.has(req.method)) return next();
-  if (!req.user) return next(new UnauthorizedError('Эта операция требует входа в систему'));
   if (!canMutate(req.user.role)) {
     return next(new ForbiddenError('Ваша роль позволяет только просмотр'));
   }
@@ -44,4 +45,4 @@ function requireUserManager(req, _res, next) {
   next();
 }
 
-module.exports = { attachUser, requireAuthForWrites, requireUserManager };
+module.exports = { attachUser, requireAccess, requireUserManager };

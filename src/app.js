@@ -11,7 +11,7 @@ const musiciansRouter = require('./routes/musicians');
 const recordsRouter = require('./routes/records');
 const salesRouter = require('./routes/sales');
 const reportsRouter = require('./routes/reports');
-const { attachUser, requireAuthForWrites, requireUserManager } = require('./middleware/auth');
+const { attachUser, requireAccess, requireUserManager } = require('./middleware/auth');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -28,9 +28,16 @@ function createApp() {
   app.use('/health', healthRouter);
   app.use('/auth', authRouter);
 
-  // Всё, что ниже, закрыто на изменение: читать можно без входа,
-  // менять — только своим. Вход и регистрация подключены выше.
-  app.use(requireAuthForWrites);
+  // Страница интерфейса, стили и скрипт отдаются без входа: иначе форма
+  // входа сама оказалась бы за 401. Данных в этих файлах нет — всё
+  // содержимое приходит из API, а API закрыт ниже. Статика отдаёт только
+  // существующие файлы и пропускает остальные запросы дальше, поэтому
+  // маршруты API она не перехватывает.
+  app.use(express.static(path.join(__dirname, '..', 'public')));
+
+  // Всё, что ниже, — данные магазина: без входа недоступны ни на чтение,
+  // ни на запись. Вход, регистрация и проверки живости подключены выше.
+  app.use(requireAccess);
 
   // Управление учётными записями закрыто целиком, включая чтение списка.
   app.use('/users', requireUserManager, usersRouter);
@@ -40,11 +47,6 @@ function createApp() {
   app.use('/records', recordsRouter);
   app.use('/sales', salesRouter);
   app.use('/reports', reportsRouter);
-
-  // Веб-интерфейс занимает корень. Ресурсы API остаются на своих адресах
-  // (/records, /sales и прочие), а индекс API уехал на /api — статика
-  // подключена последней, поэтому маршруты API она не перехватывает.
-  app.use(express.static(path.join(__dirname, '..', 'public')));
 
   app.use(notFound);
   app.use(errorHandler);
