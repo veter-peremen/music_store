@@ -14,23 +14,64 @@
 
 - **Суперадмин** — управление пользователями и каталогом.
 - **Сотрудник** — управление каталогом, составление отчетов.
-- **Наблюдатель** — просмотр каталога, остатков и отчётов (только чтение).
+- **Пользователь** — просмотр каталога, остатков и отчётов (только чтение).
 
 ## 3. Сущности и связи
 
 Три связанные каталожные сущности + два журнала движений.
 
-- **genres** (жанры): `id`, `name` (уникально).
-- **musicians** (музыканты): `id`, `name`, `country?`, `notes?`, `archived_at?` (NULL = активен, иначе — в архиве).
-- **records** (пластинки, винил): `id`, `title`, `musician_id` → musicians, `genre_id` → genres, `price` (цена продажи, > 0), `stock` (текущий остаток, ≥ 0), `year?`, `archived_at?` (NULL = в каталоге, иначе — в архиве).
-- **receipts** (поступления): `id`, `record_id` → records, `quantity` (> 0), `created_at`.
-- **sales** (продажи): `id`, `record_id` → records, `quantity` (> 0), `unit_price` (снимок цены продажи), `total` (= quantity × unit_price), `created_at`.
+Таблицы:
+
+Жанры
+Поле | Тип данных | Примечания
+-----|------------|------------
+id   | BIGINT     | PRIMARY KEY
+name | VARCHAR    | UNIQUE, NOT NULL
+
+Музыканты
+Поле | Тип данных | Примечания
+-----|------------|------------
+id   | BIGINT     | PRIMARY KEY
+name | VARCHAR    | NOT NULL
+country | VARCHAR | 
+notes | TEXT |
+archived_at | TIMESTAMP |
+
+Пластинки
+Поле | Тип данных | Примечания
+-----|------------|------------
+id   | BIGINT     | PRIMARY KEY
+title | VARCHAR    | NOT NULL
+musician_id | BIGINT | FOREIGN KEY
+genre_id | BIGINT | FOREIGN KEY
+year | SMALLINT | >1900, <=2026
+price | DECIMAL | > 0
+stock | INT | >= 0
+archived_at | TIMESTAMP |
+
+Поступления
+Поле | Тип данных | Примечания
+-----|------------|------------
+id   | BIGINT     | PRIMARY KEY, AUTOINCREMENT
+record_id | BIGINT | FOREIGN KEY
+quantity | INT | > 0
+created_at | TIMESTAMP | NOT NULL
+
+Продажи
+Поле | Тип данных | Примечания
+-----|------------|------------
+id   | BIGINT     | PRIMARY KEY, AUTOINCREMENT
+record_id | BIGINT | FOREIGN KEY
+quantity | INT | > 0
+unit_price | DECIMAL | 
+total | DECIMAL | quantity * unit_price
+created_at | TIMESTAMP | NOT NULL
 
 Связи:
 
-- `musicians` 1 — * `records` (у музыканта много пластинок).
-- `genres` 1 — * `records` (**одна пластинка — ровно один жанр**; `genre_id` обязателен).
-- `records` 1 — * `receipts`, `records` 1 — * `sales`.
+- `musicians` 1:N `records` (у музыканта много пластинок).
+- `genres` 1:N `records` (**одна пластинка — ровно один жанр**; `genre_id` обязателен).
+- `records` 1:N `receipts`, `records` 1 — * `sales`.
 - Физическое удаление музыкантов и пластинок **не выполняется** (только архивация), поэтому все внешние ключи — `ON DELETE RESTRICT`: история движений неуничтожима.
 - «Один музыкант — все жанры его пластинок» — **вычисляемая** связь (не хранится): жанры музыканта = множество жанров по всем его пластинкам (`GET /musicians/:id/genres`).
 
