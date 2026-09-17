@@ -3,6 +3,7 @@ const express = require('express');
 const db = require('../db');
 const asyncHandler = require('../utils/asyncHandler');
 const { hashPassword, verifyPassword } = require('../domain/password');
+const { DEFAULT_ROLE } = require('../domain/roles');
 const { ConflictError, UnauthorizedError } = require('../errors');
 const { parse, credentials } = require('../validation/schemas');
 const { createSession, destroySession, sessionCookie, clearedCookie } = require('../sessions');
@@ -30,7 +31,7 @@ router.post(
     }
 
     const [user] = await db('users')
-      .insert({ login, password_hash: await hashPassword(password) })
+      .insert({ login, role: DEFAULT_ROLE, password_hash: await hashPassword(password) })
       .returning('*');
 
     const token = await createSession(user.id);

@@ -28,6 +28,12 @@ describe('Права ролей', () => {
     }
   });
 
+  it('роль по умолчанию — наименьшие права: только просмотр', () => {
+    expect(DEFAULT_ROLE).toBe('viewer');
+    expect(canMutate(DEFAULT_ROLE)).toBe(false);
+    expect(canManageUsers(DEFAULT_ROLE)).toBe(false);
+  });
+
   it('роль по умолчанию входит в список известных', () => {
     expect(isKnownRole(DEFAULT_ROLE)).toBe(true);
     expect(ROLES).toContain(DEFAULT_ROLE);

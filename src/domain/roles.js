@@ -12,7 +12,12 @@
 
 const ROLES = Object.freeze(['superadmin', 'staff', 'viewer']);
 
-const DEFAULT_ROLE = 'staff';
+/**
+ * Роль по умолчанию — наименьшие права. Саморегистрация открыта любому,
+ * поэтому зарегистрировавшийся сам только смотрит; права на изменения
+ * выдаёт суперадминистратор.
+ */
+const DEFAULT_ROLE = 'viewer';
 
 /** Может ли роль менять данные магазина. */
 const canMutate = (role) => role === 'superadmin' || role === 'staff';
