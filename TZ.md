@@ -25,13 +25,13 @@
 Жанры
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | BIGINT     | PRIMARY KEY
+id   | INT     | PRIMARY KEY
 name | VARCHAR    | UNIQUE, NOT NULL
 
 Музыканты
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | BIGINT     | PRIMARY KEY
+id   | INT     | PRIMARY KEY
 name | VARCHAR    | NOT NULL
 country | VARCHAR | 
 notes | TEXT |
@@ -40,11 +40,11 @@ archived_at | TIMESTAMP |
 Пластинки
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | BIGINT     | PRIMARY KEY
+id   | INT     | PRIMARY KEY
 title | VARCHAR    | NOT NULL
 musician_id | BIGINT | FOREIGN KEY
 genre_id | BIGINT | FOREIGN KEY
-year | SMALLINT | >1900, <=2026
+year | INT | > 1900, <= 2026
 price | DECIMAL | > 0
 stock | INT | >= 0
 archived_at | TIMESTAMP |
@@ -52,7 +52,7 @@ archived_at | TIMESTAMP |
 Поступления
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | BIGINT     | PRIMARY KEY, AUTOINCREMENT
+id   | INT     | PRIMARY KEY, AUTOINCREMENT
 record_id | BIGINT | FOREIGN KEY
 quantity | INT | > 0
 created_at | TIMESTAMP | NOT NULL
@@ -60,8 +60,8 @@ created_at | TIMESTAMP | NOT NULL
 Продажи
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | BIGINT     | PRIMARY KEY, AUTOINCREMENT
-record_id | BIGINT | FOREIGN KEY
+id   | INT     | PRIMARY KEY, AUTOINCREMENT
+record_id | INT | FOREIGN KEY
 quantity | INT | > 0
 unit_price | DECIMAL | 
 total | DECIMAL | quantity * unit_price
@@ -146,7 +146,7 @@ created_at | TIMESTAMP | NOT NULL
 - Денежные суммы — `decimal(12,2)`;
 - количества и остаток — `int`;
 - временные метки — `timestamp` (`created_at`);
-- Идентификаторы и внешние ключи - `bigint`.
+- Идентификаторы и внешние ключи - `int`.
 
 ### 8.3. Ограничения и индексы
 - Все внешние ключи — `ON DELETE RESTRICT` (физического удаления музыкантов и пластинок нет, история движений неуничтожима).
