@@ -363,10 +363,51 @@ dialog menu {
   font-size: 13px;
 }
 
-#auth-dialog {
-  width: 320px;
+/* Экран входа: единственное, что видит тот, кто не вошёл. */
+.auth-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
 }
-#auth-dialog .muted {
-  margin: 0 0 14px;
+.auth-screen[hidden] {
+  display: none;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 24px 24px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 6%);
+}
+.auth-card h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+.auth-card .muted {
+  margin: 0 0 18px;
   font-size: 13px;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.auth-actions button {
+  flex: 1;
+}
+
+/* Элементы, меняющие данные, у наблюдателя не показываются вовсе. */
+[data-write][hidden] {
+  display: none !important;
+}
+
+/* Без правой колонки с формами каталог занимает всю ширину. */
+.read-only main {
+  grid-template-columns: minmax(0, 1fr);
 }

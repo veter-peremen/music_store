@@ -66,8 +66,15 @@ async function run(action, successMessage) {
     if (successMessage) toast(successMessage);
     return result === undefined ? true : result;
   } catch (err) {
-    // 401 означает не поломку, а что операция требует входа — сразу предлагаем его.
-    if (err.status === 401) openAuth('Эта операция требует входа в систему');
+    // 401 посреди работы — сессия закончилась или учётку удалили:
+    // возвращаем на экран входа, данные на странице не оставляем.
+    if (err.status === 401) {
+      showAuthScreen('Сессия завершилась — войдите снова.');
+      return null;
+    }
+    // 403 — роль могли сменить, пока страница была открыта: перечитываем права,
+    // чтобы спрятать кнопки, которые уже не работают.
+    if (err.status === 403) refreshPermissions();
     toast(err.message, true);
     return null;
   }
@@ -136,6 +143,7 @@ async function loadRecords() {
     cell(row, money(record.price), 'num');
     cell(row, record.stock, 'num');
 
+    if (!canWrite()) return;
     const actions = row.insertCell();
     actions.className = 'actions';
     if (record.archived_at) {
@@ -233,6 +241,7 @@ async function loadMusicians() {
         genresCell.textContent = '—';
       });
 
+    if (!canWrite()) return;
     const actions = row.insertCell();
     actions.className = 'actions';
     if (musician.archived_at) {
@@ -266,6 +275,7 @@ function loadGenres() {
   cache.genres.forEach((genre) => {
     const row = tbody.insertRow();
     cell(row, genre.name);
+    if (!canWrite()) return;
     const actions = row.insertCell();
     actions.className = 'actions';
     actions.append(
@@ -342,19 +352,35 @@ async function loadReport() {
 
 let currentUser = null;
 
-/** Показывает в шапке, кто вошёл, и какие кнопки уместны. */
+/** Может ли текущая роль менять данные. Сервер проверяет то же самое сам. */
+const canWrite = () =>
+  Boolean(currentUser) && (currentUser.role === 'superadmin' || currentUser.role === 'staff');
+
+/** Шапка: кто вошёл и с какой ролью, плюс вкладка пользователей для суперадминистратора. */
 function renderAuthState() {
   const whoami = $('#whoami');
-  whoami.textContent = currentUser ? currentUser.login : '';
-  whoami.hidden = !currentUser;
-  $('#auth-logout').hidden = !currentUser;
-  $('#auth-open').hidden = Boolean(currentUser);
+  whoami.textContent =
+    currentUser.login + ' · ' + (ROLE_TITLES[currentUser.role] || currentUser.role);
+  whoami.hidden = false;
+  $('#auth-logout').hidden = false;
 
-  const manages = Boolean(currentUser) && currentUser.role === 'superadmin';
+  const manages = currentUser.role === 'superadmin';
   $('#tab-users').hidden = !manages;
   // Если права потеряны, а вкладка открыта — уводим в каталог,
   // иначе человек останется смотреть на список, который уже не его.
   if (!manages && !$('#view-users').hidden) showView('catalog');
+}
+
+/**
+ * Прячет всё, что меняет данные, если роли это не положено. Это удобство,
+ * а не защита: те же запросы сервер отклонит с 403 сам.
+ */
+function applyPermissions() {
+  const writable = canWrite();
+  document.querySelectorAll('[data-write]').forEach((el) => {
+    el.hidden = !writable;
+  });
+  document.body.classList.toggle('read-only', !writable);
 }
 
 async function loadMe() {
@@ -364,7 +390,44 @@ async function loadMe() {
   } catch {
     currentUser = null;
   }
+}
+
+async function refreshPermissions() {
+  await loadMe();
+  if (!currentUser) {
+    showAuthScreen('Сессия завершилась — войдите снова.');
+    return;
+  }
   renderAuthState();
+  applyPermissions();
+  const current = document.querySelector('.tab[aria-current="true"]');
+  run(loaders[current ? current.dataset.view : 'catalog']);
+}
+
+/** Убирает со страницы всё, что было загружено под прошлой учётной записью. */
+function clearAppData() {
+  cache.genres = [];
+  cache.musicians = [];
+  pendingMove = null;
+  if ($('#move-dialog').open) $('#move-dialog').close();
+
+  document.querySelectorAll('#app tbody').forEach((tbody) => {
+    tbody.innerHTML = '';
+  });
+  document.querySelectorAll('#app form').forEach((form) => form.reset());
+  fillSelect($('#f-musician'), [], 'все');
+  fillSelect($('#f-genre'), [], 'все');
+  $('#record-form select[name="musician_id"]').innerHTML = '';
+  $('#record-form select[name="genre_id"]').innerHTML = '';
+  $('#report-totals').textContent = '';
+  $('#whoami').textContent = '';
+
+  document.querySelectorAll('.tab').forEach((tab) => {
+    tab.setAttribute('aria-current', String(tab.dataset.view === 'catalog'));
+  });
+  document.querySelectorAll('.view').forEach((view) => {
+    view.hidden = view.id !== 'view-catalog';
+  });
 }
 
 function showAuthError(message) {
@@ -373,15 +436,28 @@ function showAuthError(message) {
   node.hidden = !message;
 }
 
-function openAuth(hint) {
-  const dialog = $('#auth-dialog');
-  if (dialog.open) return;
-  if (hint) $('#auth-hint').textContent = hint;
-  showAuthError('');
+/** Экран входа вместо приложения. Данные прошлой сессии со страницы стираются. */
+function showAuthScreen(message) {
+  currentUser = null;
+  clearAppData();
+  $('#app').hidden = true;
+  $('#auth-screen').hidden = false;
   $('#auth-password').value = '';
   setPasswordVisible(false);
-  dialog.showModal();
+  showAuthError(message || '');
   $('#auth-login').focus();
+}
+
+/** Приложение после успешного входа: сначала права, потом данные. */
+async function enterApp() {
+  $('#auth-screen').hidden = true;
+  $('#app').hidden = false;
+  showAuthError('');
+  renderAuthState();
+  applyPermissions();
+  checkHealth();
+  await run(refreshDictionaries);
+  showView('catalog');
 }
 
 /** Переключает показ пароля: тип поля, иконка и подпись для читалок. */
@@ -405,19 +481,26 @@ async function submitCredentials(path) {
   try {
     const data = await post(path, body);
     currentUser = data.user;
-    renderAuthState();
-    $('#auth-dialog').close();
-    $('#auth-form').reset();
-    toast(path.endsWith('register') ? 'Учётная запись создана' : 'Вы вошли как ' + data.user.login);
+    form.reset();
+    setPasswordVisible(false);
+    await enterApp();
+    toast(
+      path.endsWith('register')
+        ? 'Учётная запись создана. Права на изменения выдаёт суперадминистратор.'
+        : 'Вы вошли как ' + data.user.login,
+    );
   } catch (err) {
     showAuthError(err.message);
   }
 }
 
 async function logout() {
-  await run(() => post('/auth/logout'), 'Вы вышли');
-  currentUser = null;
-  renderAuthState();
+  try {
+    await post('/auth/logout');
+  } catch {
+    // Даже если сервер не ответил, со страницы уходим: данные показывать нельзя.
+  }
+  showAuthScreen('Вы вышли из системы.');
 }
 
 // ---------- учётные записи ----------
@@ -574,9 +657,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (event.target.returnValue !== 'ok') pendingMove = null;
   });
 
-  $('#auth-open').addEventListener('click', () => openAuth('Введите логин и пароль.'));
   $('#auth-logout').addEventListener('click', logout);
-  $('#auth-cancel').addEventListener('click', () => $('#auth-dialog').close());
   $('#auth-eye').addEventListener('click', () => {
     setPasswordVisible($('#auth-password').type === 'password');
   });
@@ -595,8 +676,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   wireForm('#musician-form', '/musicians', 'Музыкант создан', refreshAll);
   wireForm('#record-form', '/records', 'Пластинка создана', refreshCatalog);
 
-  await checkHealth();
+  // Пока не ясно, кто пришёл, не показываем ни приложение, ни форму:
+  // иначе на мгновение мелькнёт то, чего видеть нельзя.
   await loadMe();
-  await run(refreshDictionaries);
-  await refreshCatalog();
+  if (currentUser) await enterApp();
+  else showAuthScreen();
 });
