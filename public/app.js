@@ -108,6 +108,18 @@ function button(label, onClick) {
   return el;
 }
 
+/**
+ * Ячейка с кнопками действий. Flex вешается на вложенный блок, а не на саму
+ * <td>: ячейка с display:flex перестаёт быть табличной, и её граница и
+ * высота расходятся с остальной строкой.
+ */
+function actionsCell(row) {
+  const wrap = document.createElement('div');
+  wrap.className = 'actions';
+  row.insertCell().append(wrap);
+  return wrap;
+}
+
 function badge(text) {
   const el = document.createElement('span');
   el.className = 'badge';
@@ -144,8 +156,7 @@ async function loadRecords() {
     cell(row, record.stock, 'num');
 
     if (!canWrite()) return;
-    const actions = row.insertCell();
-    actions.className = 'actions';
+    const actions = actionsCell(row);
     if (record.archived_at) {
       actions.append(button('Вернуть', () => restoreRecord(record)));
     } else {
@@ -242,8 +253,7 @@ async function loadMusicians() {
       });
 
     if (!canWrite()) return;
-    const actions = row.insertCell();
-    actions.className = 'actions';
+    const actions = actionsCell(row);
     if (musician.archived_at) {
       actions.append(button('Вернуть', () => restoreMusician(musician)));
     } else {
@@ -276,8 +286,7 @@ function loadGenres() {
     const row = tbody.insertRow();
     cell(row, genre.name);
     if (!canWrite()) return;
-    const actions = row.insertCell();
-    actions.className = 'actions';
+    const actions = actionsCell(row);
     actions.append(
       button('Переименовать', () => renameGenre(genre)),
       button('Удалить', () => removeGenre(genre)),
@@ -527,8 +536,7 @@ async function loadUsers() {
     row.insertCell().append(roleSelect(user, isMe));
     cell(row, when(user.created_at));
 
-    const actions = row.insertCell();
-    actions.className = 'actions';
+    const actions = actionsCell(row);
     if (!isMe) actions.append(button('Удалить', () => removeUser(user)));
   });
 }
