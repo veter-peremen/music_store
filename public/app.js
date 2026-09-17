@@ -517,7 +517,7 @@ async function logout() {
 const ROLE_TITLES = {
   superadmin: 'Суперадминистратор',
   staff: 'Сотрудник',
-  viewer: 'Наблюдатель',
+  viewer: 'Пользователь',
 };
 
 async function loadUsers() {
