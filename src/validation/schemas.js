@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const { ValidationError } = require('../errors');
+const { ROLES, DEFAULT_ROLE } = require('../domain/roles');
 
 /**
  * Приводит числовую строку к числу, а нечисловую оставляет строкой.
@@ -100,6 +101,33 @@ const saleCreate = z.object({
 });
 const receiptCreate = z.object({ quantity: positiveInt('quantity') });
 
+const credentials = z.object({
+  login: z
+    .string({
+      required_error: 'Поле «login» обязательно',
+      invalid_type_error: 'Поле «login» должно быть строкой',
+    })
+    .trim()
+    .min(3, 'Логин короче трёх символов')
+    .max(32, 'Логин длиннее 32 символов')
+    .regex(/^[A-Za-z0-9_-]+$/, 'В логине допустимы латинские буквы, цифры, дефис и подчёркивание'),
+  // Пароль намеренно не обрезаем: пробелы по краям могут быть его частью.
+  password: z
+    .string({
+      required_error: 'Поле «password» обязательно',
+      invalid_type_error: 'Поле «password» должно быть строкой',
+    })
+    .min(8, 'Пароль короче восьми символов')
+    .max(200, 'Пароль длиннее 200 символов'),
+});
+
+const roleField = z.enum(ROLES, {
+  errorMap: () => ({ message: `Роль должна быть одной из: ${ROLES.join(', ')}` }),
+});
+
+const userCreate = credentials.extend({ role: roleField.default(DEFAULT_ROLE) });
+const userUpdate = z.object({ role: roleField });
+
 const archivedFilter = z.enum(['false', 'true', 'all']).default('false');
 const recordListQuery = z.object({
   musician_id: positiveInt('musician_id').optional(),
@@ -143,4 +171,7 @@ module.exports = {
   recordListQuery,
   musicianListQuery,
   topSellersQuery,
+  credentials,
+  userCreate,
+  userUpdate,
 };

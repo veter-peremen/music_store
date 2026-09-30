@@ -15,7 +15,6 @@ const findRecord = async (id, trx = db) => {
   return record;
 };
 
-/** Проверяет, что музыкант и жанр существуют, а музыкант не в архиве. */
 const assertRefsExist = async (data) => {
   if (data.musician_id !== undefined) {
     const musician = await db('musicians').where({ id: data.musician_id }).first();
@@ -94,7 +93,6 @@ router.delete(
   }),
 );
 
-/** Возврат из архива. Инвариант: музыкант пластинки должен быть активен (ТЗ 4.5). */
 router.post(
   '/:id/restore',
   asyncHandler(async (req, res) => {
@@ -113,7 +111,6 @@ router.post(
   }),
 );
 
-/** Поступление: атомарно увеличивает остаток (ТЗ 4.2, 4.4). */
 router.post(
   '/:id/receipts',
   asyncHandler(async (req, res) => {

@@ -8,19 +8,19 @@ afterAll(async () => {
   await db.destroy();
 });
 
-describe('Корневой индекс API', () => {
-  it('GET / отвечает 200 и не уходит в 404', async () => {
-    const res = await request(app).get('/');
+describe('Индекс API', () => {
+  it('GET /api отвечает 200 и не уходит в 404', async () => {
+    const res = await request(app).get('/api');
     expect(res.status).toBe(200);
   });
 
   it('сообщает версию сервиса', async () => {
-    const res = await request(app).get('/');
+    const res = await request(app).get('/api');
     expect(res.body.version).toBe(require('../package.json').version);
   });
 
   it('перечисляет доступные маршруты', async () => {
-    const res = await request(app).get('/');
+    const res = await request(app).get('/api');
     const listed = JSON.stringify(res.body);
     expect(listed).toContain('/health');
     expect(listed).toContain('/records');
