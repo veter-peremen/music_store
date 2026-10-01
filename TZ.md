@@ -22,16 +22,18 @@
 
 Таблицы:
 
-Жанры
+Жанры (genres)
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | INT        | PRIMARY KEY
+id   | SERIAL        | PRIMARY KEY
 name | VARCHAR    | UNIQUE, NOT NULL
+created_at | TIMESTAMPTZ |
+updated_at | TIMESTAMPTZ | 
 
-Музыканты
+Музыканты (musicians)
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | INT     | PRIMARY KEY
+id   | SERIAL     | PRIMARY KEY
 name | VARCHAR    | NOT NULL
 country | VARCHAR | 
 notes | TEXT |
@@ -39,10 +41,10 @@ updated_at | TIMESTAMPTZ |
 created_at | TIMESTAMPTZ |
 archived_at | TIMESTAMPTZ |
 
-Пластинки
+Пластинки (records)
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | INT     | PRIMARY KEY
+id   | SERIAL     | PRIMARY KEY
 title | VARCHAR    | NOT NULL
 musician_id |    INT | FOREIGN KEY
 genre_id | INT | FOREIGN KEY
@@ -53,23 +55,42 @@ updated_at | TIMESTAMPTZ |
 created_at | TIMESTAMPTZ | 
 archived_at | TIMESTAMPTZ |
 
-Поступления
+Поступления (receipts)
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | INT     | PRIMARY KEY, AUTOINCREMENT
+id   | SERIAL     | PRIMARY KEY, AUTOINCREMENT
 record_id | INT | FOREIGN KEY
 quantity | INT | > 0
-created_at | TIMESTAMPTZ | NOT NULL
+created_at | TIMESTAMPTZ |
 
-Продажи
+Продажи (sales)
 Поле | Тип данных | Примечания
 -----|------------|------------
-id   | INT     | PRIMARY KEY, AUTOINCREMENT
+id   | SERIAL     | PRIMARY KEY, AUTOINCREMENT
 record_id | INT | FOREIGN KEY
 quantity | INT | > 0
 unit_price | NUMERIC | 
 total | NUMERIC | quantity * unit_price
 created_at | TIMESTAMPTZ | NOT NULL
+
+Пользователи (users)
+Поле | Тип данных | Примечания
+-----|------------|------------
+id   | SERIAL     | PRIMARY KEY
+login| VARCHAR | 
+password_hash | TEXT |
+role | VARCHAR | 
+updated_at | TIMESTAMPTZ |
+created_at | TIMESTAMPTZ | 
+
+
+Сессии (sessions)
+Поле | Тип данных | Примечания
+-----|------------|------------
+token_hash   | VARCHAR     | PRIMARY KEY
+user_id | INT | FOREIGN KEY
+created_at | TIMESTAMPTZ |
+expires_at | TIMESTAMPTZ |
 
 Связи:
 
