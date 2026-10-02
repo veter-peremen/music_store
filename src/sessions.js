@@ -51,7 +51,8 @@ async function destroySession(token) {
 const sessionCookie = (token) =>
   serializeCookie(COOKIE_NAME, token, {
     maxAge: TTL_SECONDS,
-    secure: config.env === 'production',
+    secure: false;
+    //secure: config.env === 'production',
   });
 
 const clearedCookie = () =>
