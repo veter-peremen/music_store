@@ -1,4 +1,4 @@
-.PHONY: help setup deploy start stop restart status
+.PHONY: help setup deploy start stop restart status migrate rollback test lint verify
 
 
 help:
@@ -40,7 +40,17 @@ status:
 migrate:
 	npx knex migrate:latest
 
+rollback:
+	npx knex migrate:rollback
 
+test:
+	npm test
+
+lint:
+	npm run lint
+
+verify: lint test
+	@echo "все проверки пройдены"
 
 
 
