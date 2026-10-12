@@ -1,54 +1,94 @@
-.PHONY: help setup run test quality lint format migrate rollback seed verify up down container-check
+.PHONY: help setup deploy start stop restart status
+
 
 help:
-	@echo "setup    - установка зависимостей и подготовка .env"
-	@echo "run      - локальный запуск приложения"
-	@echo "test     - автоматические тесты"
-	@echo "quality  - форматирование и статический анализ"
-	@echo "migrate  - применение миграций"
-	@echo "rollback - откат последней миграции"
-	@echo "seed     - тестовые данные"
-	@echo "verify   - полный набор локальных проверок (quality + test)"
-	@echo "up       - запуск контейнера с БД"
-	@echo "down     - остановка контейнера с БД"
+	@echo "setup    - первоначальная настройка проекта"
+	@echo "deploy      - деплой последней версии проекта"
+	@echo "start      - запуск"
+	@echo "stop      - остановка"
+	@echo "restart      - перезапуск"
+	@echo "status      - просмотр статуса"
+
 
 setup:
-	npm ci || npm install
-	@test -f .env || (cp .env.example .env && echo "Создан .env из .env.example - проверьте значения")
+	@echo "первичная настройка начата"
+	git clone https://github.com/veter-peremen/music_store/
+	npm install
+	cp .env.example .env
+	@echo "конфиг создан!"
 
-run:
-	npm start
+deploy:
+	@echo "деплой запущен"
+	./deploy.sh
 
-test:
-	npm test
+start:
+	sudo systemctl start music-store
+  @echo "сервер запущен"
 
-lint:
-	npm run lint
+stop:
+	sudo systemctl stop music-store
+  @echo "сервер остановлен"
 
-format:
-	npm run format:check
+restart:
+	sudo systemctl restart music-store
+  @echo "сервер перезагружен"
 
-quality:
-	npm run format:check
-	npm run lint
+status:
+  sudo systemctl status music-store
 
-migrate:
-	npm run migrate
 
-rollback:
-	npm run migrate:rollback
 
-seed:
-	npm run seed
+#.PHONY: help setup run test quality lint format migrate rollback seed verify up down container-check
 
-verify: quality test
-	@echo "Все локальные проверки пройдены"
+#help:
+#	@echo "setup    - установка зависимостей и подготовка .env"
+#	@echo "run      - локальный запуск приложения"
+#	@echo "test     - автоматические тесты"
+#	@echo "quality  - форматирование и статический анализ"
+#	@echo "migrate  - применение миграций"
+#	@echo "rollback - откат последней миграции"
+#	@echo "seed     - тестовые данные"
+#	@echo "verify   - полный набор локальных проверок (quality + test)"
+#	@echo "up       - запуск контейнера с БД"
+#	@echo "down     - остановка контейнера с БД"
 
-up:
-	docker compose up -d
+#setup:
+#	npm ci || npm install
+#	@test -f .env || (cp .env.example .env && echo "Создан .env из .env.example - проверьте значения")
 
-down:
-	docker compose down
+#run:
+#	npm start
 
-container-check:
-	docker compose ps
+#test:
+#	npm test
+
+#lint:
+#	npm run lint
+
+#format:
+#	npm run format:check
+
+#quality:
+#	npm run format:check
+#	npm run lint
+
+#migrate:
+#	npm run migrate
+
+#rollback:
+#	npm run migrate:rollback
+
+#seed:
+#	npm run seed
+
+#verify: quality test
+#	@echo "Все локальные проверки пройдены"
+
+#up:
+#	docker compose up -d
+
+#down:
+#	docker compose down
+
+#container-check:
+#	docker compose ps
