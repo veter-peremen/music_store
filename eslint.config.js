@@ -25,9 +25,32 @@ const jestGlobals = {
   jest: 'readonly',
 };
 
+const browserGlobals = {
+  window: 'readonly',
+  document: 'readonly',
+  fetch: 'readonly',
+  URLSearchParams: 'readonly',
+  prompt: 'readonly',
+  confirm: 'readonly',
+  FormData: 'readonly',
+  Option: 'readonly',
+  alert: 'readonly',
+  localStorage: 'readonly',
+  sessionStorage: 'readonly',
+  navigator: 'readonly',
+  location: 'readonly',
+  history: 'readonly',
+  console: 'readonly',
+  setTimeout: 'readonly',
+  clearTimeout: 'readonly',
+  setInterval: 'readonly',
+  clearInterval: 'readonly',
+};
+
 module.exports = [
   { ignores: ['node_modules/', 'coverage/'] },
   js.configs.recommended,
+  
   {
     files: ['**/*.js'],
     languageOptions: {
@@ -41,8 +64,16 @@ module.exports = [
       'no-console': 'off',
     },
   },
+  
   {
     files: ['tests/**/*.js'],
     languageOptions: { globals: { ...nodeGlobals, ...jestGlobals } },
+  },
+  
+  {
+    files: ['public/**/*.js'],
+    languageOptions: {
+      globals: browserGlobals,
+    },
   },
 ];
