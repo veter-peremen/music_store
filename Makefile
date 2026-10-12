@@ -8,16 +8,17 @@ help:
 	@echo "stop      - остановка"
 	@echo "restart      - перезапуск"
 	@echo "status      - просмотр статуса"
+	@echo "migrate		- провести миграцию"
 
 
 setup:
 	@echo "первичная настройка начата"
 	git clone https://github.com/veter-peremen/music_store/
 	npm install
-	cp .env.example .env
-	@echo "конфиг создан!"
+	@test -f .env || (cp .env.example .env && echo "конфиг создан!")
 
 deploy:
+	@test -f ./deploy.sh || (echo "скрипт deploy.sh не найден!" && exit 1)
 	@echo "деплой запущен"
 	./deploy.sh
 
@@ -35,6 +36,11 @@ restart:
 
 status:
 	sudo systemctl status music-store
+
+migrate:
+	npx knex migrate:latest
+
+
 
 
 
