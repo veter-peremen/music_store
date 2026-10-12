@@ -13,7 +13,7 @@ help:
 
 setup:
 	@echo "первичная настройка начата"
-	git clone https://github.com/veter-peremen/music_store/
+	git clone https://github.com/veter-peremen/music_store/ .
 	npm install
 	@test -f .env || (cp .env.example .env && echo "конфиг создан!")
 
@@ -47,7 +47,7 @@ test:
 	npm test
 
 lint:
-	npm run lint
+	npx eslint .
 
 verify: lint test
 	@echo "все проверки пройдены"
