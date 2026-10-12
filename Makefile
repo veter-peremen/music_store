@@ -23,18 +23,18 @@ deploy:
 
 start:
 	sudo systemctl start music-store
-  @echo "сервер запущен"
+	@echo "сервер запущен"
 
 stop:
 	sudo systemctl stop music-store
-  @echo "сервер остановлен"
+	@echo "сервер остановлен"
 
 restart:
 	sudo systemctl restart music-store
-  @echo "сервер перезагружен"
+	@echo "сервер перезагружен"
 
 status:
-  sudo systemctl status music-store
+	sudo systemctl status music-store
 
 
 
