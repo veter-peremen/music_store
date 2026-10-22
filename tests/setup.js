@@ -1,18 +1,21 @@
-// Отдельная конфигурация для тестов
-
-process.env.NODE_ENV = 'test';
-
-if (!process.env.TEST_DB_NAME) {
-  console.warn('⚠️  WARNING: TEST_DB_NAME не установлена. Используйте базу music_store_test');
+if (process.env.NODE_ENV !== 'test') {
+  throw new Error(
+    'ОШИБКА: NODE_ENV не равен "test"! ' +
+    'Тесты не могут запускаться в production/development окружении. ' +
+    'Используйте: NODE_ENV=test npm test'
+  );
 }
 
-jest.setTimeout(10000); // 10 секунд на тест
 
-global.console = {
-  ...console,
-  log: jest.fn(),
-  debug: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-};
+const dbName = process.env.DB_NAME || '';
+if (!dbName.includes('test')) {
+  throw new Error(
+    `ОШИБКА: База данных "${dbName}" не является тестовой! ` +
+    'Установите DB_NAME=music_store_test в .env.test'
+  );
+}
+
+// если база данных не тестовая, тесты не выполняются
+jest.setTimeout(10000);
+
+console.log(`✅ Тестовое окружение подтверждено: NODE_ENV=${process.env.NODE_ENV}, DB=${dbName}`);
