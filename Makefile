@@ -53,6 +53,44 @@ verify: lint test
 	@echo "все проверки пройдены"
 
 
+TEST_DB_NAME ?= music_store_test
+DB_USER ?= ozzy
+NODE_ENV_TEST = test
+
+
+
+.PHONY: test test:coverage test:db:setup test:db:clean test:all
+
+# 1. Полная проверка: подготовка БД + тесты с покрытием
+test:all: test:db:setup
+	@echo "🚀 Запускаем полный цикл тестирования с проверкой покрытия..."
+	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm run test:coverage
+
+test: test:db:setup
+	@echo "запускаем тесты"
+	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm test
+
+test:coverage: test:db:setup
+	@echo "тесты coverage запущены, отчет составляется"
+	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm run test:coverage
+	@echo "отчет доступен в папке coverage/lcov-report/index.html"
+
+test:db:setup:
+	@echo "🛠️  Проверяем и создаем тестовую базу данных '$(TEST_DB_NAME)'..."
+	@sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '$(TEST_DB_NAME)'" | grep -q 1 || \
+		(sudo -u postgres psql -c "CREATE DATABASE $(TEST_DB_NAME) OWNER $(DB_USER);" && \
+		sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $(TEST_DB_NAME) TO $(DB_USER);")
+	@echo "миграции на тестовой базе проведены"
+	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npx knex migrate:latest
+	@echo "тестовая база готова"
+
+test:db:clean:
+	@echo "осторожно: полная очистка базы данных"
+	@sudo -u postgres psql -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
+	@$(MAKE) test:db:setup
+
+
+
 
 #.PHONY: help setup run test quality lint format migrate rollback seed verify up down container-check
 
