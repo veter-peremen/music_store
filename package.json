@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "NODE_ENV=test DB_NAME=music_store_test jest --runInBand --forceExit",
+    "test": "NODE_ENV=test DB_NAME=music_store_test jest --runInBand --forceExit --ci --colors=false",
     "test:coverage": "NODE_ENV=test DB_NAME=music_store_test jest --coverage --runInBand --forceExit",
     "test:watch": "NODE_ENV=test DB_NAME=music_store_test jest --watch",
     "db:test:create": "createdb -U ozzy -h 192.168.57.101 music_store_test",
