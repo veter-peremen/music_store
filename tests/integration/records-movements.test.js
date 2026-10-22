@@ -1,6 +1,6 @@
 const request = require('supertest');
-const createApp = require('../src/app');
-const db = require('../src/db');
+const createApp = require('../../src/app');
+const db = require('../../src/db');
 
 const app = createApp();
 const stamp = Date.now() + 1; // Другой stamp, чтобы не пересекаться
