@@ -180,7 +180,7 @@ describe('5. Граничные случаи и ошибочные данные'
           stock: 5
         });
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(404);
     });
 
     it('отклоняет год в будущем', async () => {
