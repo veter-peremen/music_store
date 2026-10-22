@@ -7,7 +7,6 @@ const { serializeCookie } = require('./utils/cookies');
 const COOKIE_NAME = 'session';
 const TTL_SECONDS = 7 * 24 * 60 * 60;
 
-/** В базе лежит отпечаток токена, а не он сам — дамп базы не даёт войти. */
 const fingerprint = (token) => createHash('sha256').update(token).digest('hex');
 
 async function createSession(userId) {
@@ -56,7 +55,8 @@ const sessionCookie = (token) =>
   });
 
 const clearedCookie = () =>
-  serializeCookie(COOKIE_NAME, '', { maxAge: 0, secure: config.env === 'production' });
+  serializeCookie(COOKIE_NAME, '', { maxAge: 0, secure: false });
+  //serializeCookie(COOKIE_NAME, '', { maxAge: 0, secure: config.env === 'production' });
 
 module.exports = {
   COOKIE_NAME,
