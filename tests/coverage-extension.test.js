@@ -75,7 +75,7 @@ describe('4. Покрытие недостающего функционала (�
         .delete(`/genres/${genreId}`)
         .set('Cookie', adminCookie);
 
-      expect(res.status).toBe(200); // или 204
+      expect([200, 204]).toContain(res.status);
     });
   });
 
