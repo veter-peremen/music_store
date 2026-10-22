@@ -47,7 +47,7 @@ test:
 	npm test
 
 lint:
-	npx eslint .
+	npx run lint
 
 verify: lint test
 	@echo "все проверки пройдены"
