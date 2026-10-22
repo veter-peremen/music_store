@@ -12,7 +12,7 @@
     "test:watch": "NODE_ENV=test jest --watch",
     "db:test:create": "createdb -U ozzy -h 192.168.57.101 music_store_test",
     "db:test:migrate": "NODE_ENV=test knex migrate:latest",
-    "db:test:clean": "NODE_ENV=test knex migrate:rollback --all && NODE_ENV=test knex migrate:latest"
+    "db:test:clean": "NODE_ENV=test knex migrate:rollback --all && NODE_ENV=test knex migrate:latest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
