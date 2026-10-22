@@ -26,17 +26,25 @@ const seedTestData = async () => {
 };
 
 beforeAll(async () => {
-  // Создаем админа для тестов, требующих прав на запись
-  await db('users').insert({ 
-    login: adminLogin, 
-    password_hash: 'dummy_hash', // Для тестов API прав достаточно наличия роли
-    role: 'superadmin' 
-  });
-  const res = await request(app).post('/auth/login').send({ login: adminLogin, password: 'dummy' });
-  // Примечание: если пароль хешируется, лучше создать пользователя через /auth/register, 
-  // а потом обновить роль, как в users.test.js. Для краткости здесь упрощенно:
-  const regRes = await request(app).post('/auth/register').send({ login: adminLogin, password: 'TestPass123!' });
-  adminCookie = regRes.headers['set-cookie'][0].split(';')[0];
+  // 1. Регистрируем пользователя
+  const regRes = await request(app)
+    .post('/auth/register')
+    .send({ login: adminLogin, password: 'TestPass123!' });
+
+  // 2. Проверяем, что регистрация прошла успешно
+  if (regRes.status !== 201) {
+    console.error('Ошибка регистрации:', regRes.status, regRes.body);
+    throw new Error(`Регистрация не удалась: ${regRes.status}`);
+  }
+
+  // 3. Достаём cookie безопасно
+  const setCookie = regRes.headers['set-cookie'];
+  if (!setCookie || !setCookie[0]) {
+    throw new Error('Cookie не установлен после регистрации');
+  }
+  adminCookie = setCookie[0].split(';')[0];
+
+  // 4. Повышаем до супермина
   await db('users').where({ login: adminLogin }).update({ role: 'superadmin' });
 });
 
