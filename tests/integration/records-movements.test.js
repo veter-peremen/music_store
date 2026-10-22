@@ -8,8 +8,21 @@ const adminLogin = `adm_mov_${stamp}`;
 let adminCookie;
 
 beforeAll(async () => {
-  const regRes = await request(app).post('/auth/register').send({ login: adminLogin, password: 'TestPass123!' });
-  adminCookie = regRes.headers['set-cookie'][0].split(';')[0];
+  const regRes = await request(app)
+    .post('/auth/register')
+    .send({ login: adminLogin, password: 'TestPass123!' });
+
+  if (regRes.status !== 201) {
+    console.error('Ошибка регистрации:', regRes.status, regRes.body);
+    throw new Error(`Регистрация не удалась: ${regRes.status}`);
+  }
+
+  const setCookie = regRes.headers['set-cookie'];
+  if (!setCookie || !setCookie[0]) {
+    throw new Error('Cookie не установлен после регистрации');
+  }
+  adminCookie = setCookie[0].split(';')[0];
+
   await db('users').where({ login: adminLogin }).update({ role: 'superadmin' });
 });
 
