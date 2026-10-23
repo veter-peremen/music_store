@@ -1,7 +1,7 @@
 const request = require('supertest');
 const createApp = require('../../src/app');
 const db = require('../../src/db');
-
+const knex = require('../../src/db'); 
 const app = createApp();
 
 // Уникальные данные для каждого прогона, чтобы тесты не мешали друг другу
@@ -46,6 +46,15 @@ beforeAll(async () => {
 
   // 4. Повышаем до супермина
   await db('users').where({ login: adminLogin }).update({ role: 'superadmin' });
+});
+
+beforeEach(async () => {
+  // Очищаем все таблицы перед каждым тестом
+  await knex('sales').del();
+  await knex('receipts').del();
+  await knex('records').del();
+  await knex('musicians').del();
+  await knex('genres').del();
 });
 
 afterAll(async () => {
