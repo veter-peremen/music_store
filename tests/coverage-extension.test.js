@@ -25,7 +25,7 @@ afterAll(async () => {
   await db.destroy();
 });
 
-describe('4. Покрытие недостающего функционала (≥40%)', () => {
+describe('4. Покрытие функционала', () => {
   
   describe('API: Жанры - CRUD операции', () => {
     let genreId;
@@ -222,10 +222,10 @@ describe('4. Покрытие недостающего функционала (�
   expect(res.status).toBe(201);
   expect(res.body).toBeDefined();
   
-  
-  const hasSomeData = res.body.id || res.body.record_id || res.body.sale_id || Array.isArray(res.body);
+  const hasSomeData = res.body.sale?.id || res.body.sale?.record_id || res.body.sale_id || Array.isArray(res.body);
   expect(hasSomeData).toBeTruthy();
 });
+
 
     test('GET /sales - получение истории продаж', async () => {
       const res = await request(app)
