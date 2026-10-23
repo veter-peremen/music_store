@@ -27,6 +27,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await db('receipts').whereRaw('record_id IN (SELECT id FROM records WHERE title LIKE ?)', [`%MOV_${stamp}%`]).del();
+  await db('sales').whereRaw('record_id IN (SELECT id FROM records WHERE title LIKE ?)', [`%MOV_${stamp}%`]).del();
   await db('records').whereRaw('title LIKE ?', [`%MOV_${stamp}%`]).del();
   await db('musicians').whereRaw('name LIKE ?', [`%MOV_${stamp}%`]).del();
   await db('genres').whereRaw('name LIKE ?', [`%MOV_${stamp}%`]).del();
