@@ -19,16 +19,37 @@ const toNumber = (value) => {
 /**
  * Числовое поле, различающее «не передано» и «передан мусор».
  *
- * z.coerce.number() прогоняет через Number() даже undefined, получает NaN
- * и рапортует «Expected number, received nan» — по такому сообщению нельзя
- * понять, что поле просто забыли. Здесь наличие проверяется до приведения.
+ * Явно проверяем undefined до приведения типов, чтобы выдать правильное сообщение.
  */
 const numeric = (field, refine = (schema) => schema) =>
-  z.preprocess(
-    toNumber,
+  z.any().superRefine((val, ctx) => {
+    // Сначала проверяем на undefined - поле не передано
+    if (val === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» обязательно`,
+      });
+      return z.NEVER;
+    }
+    
+    // Приводим числовые строки к числам
+    const processed = toNumber(val);
+    
+    // Если после приведения всё ещё не число - неправильный тип
+    if (typeof processed !== 'number' || Number.isNaN(processed)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» должно быть числом`,
+      });
+      return z.NEVER;
+    }
+    
+    // Возвращаем обработанное значение для дальнейшей валидации
+    return processed;
+  })
+  .pipe(
     refine(
       z.number({
-        required_error: `Поле «${field}» обязательно`,
         invalid_type_error: `Поле «${field}» должно быть числом`,
       }),
     ),
@@ -43,14 +64,18 @@ const positiveInt = (field) =>
   );
 
 const text = (field, max) =>
-  z
-    .string({
-      required_error: `Поле «${field}» обязательно`,
-      invalid_type_error: `Поле «${field}» должно быть строкой`,
+  z.string({
+    required_error: `Поле «${field}» обязательно`,
+    invalid_type_error: `Поле «${field}» должно быть строкой`,
+  })
+    .transform((val) => {
+      if (val === undefined) {
+        throw new Error(`Поле «${field}» обязательно`);
+      }
+      return val.trim();
     })
-    .trim()
-    .min(1, `Поле «${field}» не может быть пустым`)
-    .max(max, `Поле «${field}» длиннее ${max} символов`);
+    .refine((val) => val.length > 0, `Поле «${field}» не может быть пустым`)
+    .refine((val) => val.length <= max, `Поле «${field}» длиннее ${max} символов`);
 
 const idParam = positiveInt('id');
 
