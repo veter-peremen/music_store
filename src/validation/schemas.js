@@ -4,9 +4,6 @@ const { ROLES, DEFAULT_ROLE } = require('../domain/roles');
 
 /**
  * Приводит числовую строку к числу, а нечисловую оставляет строкой.
- *
- * Мусор намеренно не превращается в NaN: пусть до проверки типа дойдёт
- * строка, тогда zod скажет «должно быть числом», а не «received nan».
  */
 const toNumber = (value) => {
   if (typeof value !== 'string') return value;
@@ -18,13 +15,14 @@ const toNumber = (value) => {
 
 /**
  * Числовое поле, различающее «не передано» и «передан мусор».
- *
- * Явно проверяем undefined до приведения типов, чтобы выдать правильное сообщение.
  */
-const numeric = (field, refine = (schema) => schema) =>
-  z.any().superRefine((val, ctx) => {
-    // Сначала проверяем на undefined - поле не передано
-    if (val === undefined) {
+const numeric = (field, refine = (schema) => schema) => {
+  const baseSchema = z.any({
+    required_error: `Поле «${field}» обязательно`,
+    invalid_type_error: `Поле «${field}» должно быть числом`,
+  }).transform((val, ctx) => {
+    // Проверяем на undefined/null до приведения
+    if (val === undefined || val === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Поле «${field}» обязательно`,
@@ -32,10 +30,10 @@ const numeric = (field, refine = (schema) => schema) =>
       return z.NEVER;
     }
     
-    // Приводим числовые строки к числам
+    // Приводим числовые строки
     const processed = toNumber(val);
     
-    // Если после приведения всё ещё не число - неправильный тип
+    // Если не число после приведения
     if (typeof processed !== 'number' || Number.isNaN(processed)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -44,38 +42,64 @@ const numeric = (field, refine = (schema) => schema) =>
       return z.NEVER;
     }
     
-    // Возвращаем обработанное значение для дальнейшей валидации
     return processed;
-  })
-  .pipe(
-    refine(
-      z.number({
-        invalid_type_error: `Поле «${field}» должно быть числом`,
-      }),
-    ),
-  );
+  });
+  
+  return refine(baseSchema);
+};
 
 /** Целый положительный идентификатор или количество. */
 const positiveInt = (field) =>
   numeric(field, (schema) =>
     schema
-      .int(`Поле «${field}» должно быть целым числом`)
-      .positive(`Поле «${field}» должно быть больше нуля`),
+      .refine((val) => Number.isInteger(val), {
+        message: `Поле «${field}» должно быть целым числом`,
+      })
+      .refine((val) => val > 0, {
+        message: `Поле «${field}» должно быть больше нуля`,
+      }),
   );
 
 const text = (field, max) =>
-  z.string({
+  z.any({
     required_error: `Поле «${field}» обязательно`,
     invalid_type_error: `Поле «${field}» должно быть строкой`,
-  })
-    .transform((val) => {
-      if (val === undefined) {
-        throw new Error(`Поле «${field}» обязательно`);
-      }
-      return val.trim();
-    })
-    .refine((val) => val.length > 0, `Поле «${field}» не может быть пустым`)
-    .refine((val) => val.length <= max, `Поле «${field}» длиннее ${max} символов`);
+  }).transform((val, ctx) => {
+    if (val === undefined || val === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» обязательно`,
+      });
+      return z.NEVER;
+    }
+    
+    if (typeof val !== 'string') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» должно быть строкой`,
+      });
+      return z.NEVER;
+    }
+    
+    const trimmed = val.trim();
+    if (trimmed.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» не может быть пустым`,
+      });
+      return z.NEVER;
+    }
+    
+    if (trimmed.length > max) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» длиннее ${max} символов`,
+      });
+      return z.NEVER;
+    }
+    
+    return trimmed;
+  });
 
 const idParam = positiveInt('id');
 
@@ -99,21 +123,21 @@ const recordCreate = z.object({
   genre_id: positiveInt('genre_id'),
   price: numeric('price', (schema) =>
     schema
-      .positive('Поле «price» должно быть больше нуля')
-      .max(1_000_000, 'Поле «price» слишком велико'),
+      .refine((val) => val > 0, 'Поле «price» должно быть больше нуля')
+      .refine((val) => val <= 1_000_000, 'Поле «price» слишком велико'),
   ),
   year: numeric('year', (schema) =>
     schema
-      .int('Поле «year» должно быть целым числом')
-      .min(1900, 'Поле «year» не может быть раньше 1900')
-      .max(2100, 'Поле «year» не может быть позже 2100'),
+      .refine((val) => Number.isInteger(val), 'Поле «year» должно быть целым числом')
+      .refine((val) => val >= 1900, 'Поле «year» не может быть раньше 1900')
+      .refine((val) => val <= 2100, 'Поле «year» не может быть позже 2100'),
   )
     .optional()
     .nullable(),
   stock: numeric('stock', (schema) =>
     schema
-      .int('Поле «stock» должно быть целым числом')
-      .min(0, 'Поле «stock» не может быть отрицательным'),
+      .refine((val) => Number.isInteger(val), 'Поле «stock» должно быть целым числом')
+      .refine((val) => val >= 0, 'Поле «stock» не может быть отрицательным'),
   ).optional(),
 });
 const recordUpdate = recordCreate.partial().refine((v) => Object.keys(v).length > 0, {
@@ -136,7 +160,6 @@ const credentials = z.object({
     .min(3, 'Логин короче трёх символов')
     .max(32, 'Логин длиннее 32 символов')
     .regex(/^[A-Za-z0-9_-]+$/, 'В логине допустимы латинские буквы, цифры, дефис и подчёркивание'),
-  // Пароль намеренно не обрезаем: пробелы по краям могут быть его частью.
   password: z
     .string({
       required_error: 'Поле «password» обязательно',
@@ -163,9 +186,9 @@ const musicianListQuery = z.object({ archived: archivedFilter });
 const topSellersQuery = z.object({
   limit: numeric('limit', (schema) =>
     schema
-      .int('Поле «limit» должно быть целым числом')
-      .positive('Поле «limit» должно быть больше нуля')
-      .max(100, 'Поле «limit» не может превышать 100'),
+      .refine((val) => Number.isInteger(val), 'Поле «limit» должно быть целым числом')
+      .refine((val) => val > 0, 'Поле «limit» должно быть больше нуля')
+      .refine((val) => val <= 100, 'Поле «limit» не может превышать 100'),
   ).default(10),
 });
 
