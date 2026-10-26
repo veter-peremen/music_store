@@ -43,15 +43,6 @@ migrate:
 rollback:
 	npx knex migrate:rollback
 
-test:
-	npm test
-
-lint:
-	npx run lint
-
-verify: lint test
-	@echo "все проверки пройдены"
-
 
 TEST_DB_NAME ?= music_store_test
 DB_USER ?= ozzy
@@ -85,9 +76,19 @@ test:db:setup:
 	@echo "тестовая база готова"
 
 test:db:clean:
-	@echo "осторожно: полная очистка базы данных"
-	@sudo -u postgres psql -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
-	@$(MAKE) test:db:setup
+	npm run db:test:clean
+
+test:db:migrate:
+	npm run db:test:migrate
+
+test:db:rollback:
+	npm run db:test:migrate:rollback
+
+lint:
+	eslint .
+
+lint:fix:
+	eslint . -- fix
 
 
 
