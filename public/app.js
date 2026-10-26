@@ -155,7 +155,10 @@ async function loadRecords() {
     cell(row, nameById(cache.genres, record.genre_id));
     cell(row, money(record.price), 'num');
     cell(row, record.stock, 'num');
-
+    const recordCommentCell = row.insertCell();
+    if (record.comment && record.comment.trim() !== '') {
+      recordCommentCell.textContent = record.comment;
+    }
     if (!canWrite()) return;
     const actions = actionsCell(row);
     if (record.archived_at) {
@@ -252,6 +255,11 @@ async function loadMusicians() {
       .catch(() => {
         genresCell.textContent = '—';
       });
+    const musicianCommentCell = row.insertCell();
+if (musician.comment && musician.comment.trim() !== '') {
+  musicianCommentCell.textContent = musician.comment;
+}
+
 
     if (!canWrite()) return;
     const actions = actionsCell(row);
@@ -286,6 +294,10 @@ function loadGenres() {
   cache.genres.forEach((genre) => {
     const row = tbody.insertRow();
     cell(row, genre.name);
+    const genreCommentCell = row.insertCell();
+    if (genre.comment && genre.comment.trim() !== '') {
+      genreCommentCell.textContent = genre.comment;
+    }
     if (!canWrite()) return;
     const actions = actionsCell(row);
     actions.append(
