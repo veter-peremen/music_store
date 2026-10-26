@@ -21,11 +21,20 @@ const numeric = (field, refine = (schema) => schema) => {
     required_error: `Поле «${field}» обязательно`,
     invalid_type_error: `Поле «${field}» должно быть числом`,
   }).transform((val, ctx) => {
-    // Проверяем на undefined/null до приведения
-    if (val === undefined || val === null) {
+    // undefined = поле не передано
+    if (val === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Поле «${field}» обязательно`,
+      });
+      return z.NEVER;
+    }
+    
+    // null = передан неправильный тип
+    if (val === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» должно быть числом`,
       });
       return z.NEVER;
     }
@@ -65,10 +74,20 @@ const text = (field, max) =>
     required_error: `Поле «${field}» обязательно`,
     invalid_type_error: `Поле «${field}» должно быть строкой`,
   }).transform((val, ctx) => {
-    if (val === undefined || val === null) {
+    // undefined = поле не передано
+    if (val === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Поле «${field}» обязательно`,
+      });
+      return z.NEVER;
+    }
+    
+    // null = передан неправильный тип
+    if (val === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Поле «${field}» должно быть строкой`,
       });
       return z.NEVER;
     }
@@ -100,13 +119,6 @@ const text = (field, max) =>
     
     return trimmed;
   });
-
-const idParam = positiveInt('id');
-
-const genreCreate = z.object({ name: text('name', 120) });
-const genreUpdate = genreCreate.partial().refine((v) => Object.keys(v).length > 0, {
-  message: 'Нужно передать хотя бы одно поле',
-});
 
 const musicianCreate = z.object({
   name: text('name', 200),
