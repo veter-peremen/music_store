@@ -61,6 +61,7 @@
                   <th>Название</th>
                   <th>Музыкант</th>
                   <th>Жанр</th>
+                  <th>Комментарий</th>
                   <th class="num">Цена</th>
                   <th class="num">Остаток</th>
                   <th data-write>Действия</th>
@@ -83,6 +84,7 @@
                 >Жанр
                 <select name="genre_id" required></select
               ></label>
+              <label>Комментарий <textarea name="comment" maxlength="2000" rows="3" placeholder="Необязательно"></textarea></label>
               <label
                 >Цена <input name="price" type="number" step="0.01" min="0.01" required
               /></label>
@@ -113,6 +115,7 @@
                   <th>Имя</th>
                   <th>Страна</th>
                   <th>Жанры</th>
+                  <th>Комментарий</th>
                   <th data-write>Действия</th>
                 </tr>
               </thead>
@@ -125,7 +128,7 @@
             <form id="musician-form" class="form">
               <label>Имя <input name="name" required maxlength="200" /></label>
               <label>Страна <input name="country" maxlength="100" /></label>
-              <label>Заметки <textarea name="notes" maxlength="2000" rows="3"></textarea></label>
+              <label>Комментарий <textarea name="comment" maxlength="2000" rows="3" placeholder="Необязательно"></textarea></label>
               <button type="submit">Создать</button>
             </form>
           </div>
@@ -139,6 +142,7 @@
               <thead>
                 <tr>
                   <th>Название</th>
+                  <th>Комментарий</th>
                   <th data-write>Действия</th>
                 </tr>
               </thead>
@@ -149,6 +153,7 @@
             <h2>Новый жанр</h2>
             <form id="genre-form" class="form">
               <label>Название <input name="name" required maxlength="120" /></label>
+              <label>Комментарий <textarea name="comment" maxlength="2000" rows="3" placeholder="Необязательно"></textarea></label>
               <button type="submit">Создать</button>
             </form>
           </div>
