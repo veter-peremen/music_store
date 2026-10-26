@@ -1,5 +1,9 @@
-.PHONY: help setup deploy start stop restart status migrate rollback test lint verify
+.PHONY: help setup deploy start stop restart status migrate rollback lint verify test test:coverage test:db:setup test:db:clean test:db:migrate test:db:rollback lint lint:fix
 
+
+TEST_DB_NAME ?= music_store_test
+DB_USER ?= ozzy
+NODE_ENV_TEST = test
 
 help:
 	@echo "setup    - первоначальная настройка проекта"
@@ -9,7 +13,16 @@ help:
 	@echo "restart      - перезапуск"
 	@echo "status      - просмотр статуса"
 	@echo "migrate		- провести миграцию"
-
+	@echo "rollback 	- откат миграции"
+	@echo "test 	- запуск теста"
+	@echo "test:coverage 	- анализ покрытия тестирования"
+	@echo "test:db:setup 	- создание тестовой базы"
+	@echo "test:db:clean 	- очистка тестовой базы"
+	@echo "test:db:migrate 	- провести миграцию на тестовую базу"
+	@echo "test:db:rollback 	- откат миграции на тестовой базе"
+	@echo "lint 	- линт-тест кода"
+	@echo "lint:fix 	- линт-тест с исправлениями"
+	@echo "verify		- полная проверка"
 
 setup:
 	@echo "первичная настройка начата"
@@ -43,25 +56,11 @@ migrate:
 rollback:
 	npx knex migrate:rollback
 
-
-TEST_DB_NAME ?= music_store_test
-DB_USER ?= ozzy
-NODE_ENV_TEST = test
-
-
-
-.PHONY: test test:coverage test:db:setup test:db:clean test:all
-
-# 1. Полная проверка: подготовка БД + тесты с покрытием
-test:all: test:db:setup
-	@echo "🚀 Запускаем полный цикл тестирования с проверкой покрытия..."
-	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm run test:coverage
-
-test: test:db:setup
+test: 
 	@echo "запускаем тесты"
 	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm test
 
-test:coverage: test:db:setup
+test:coverage: 
 	@echo "тесты coverage запущены, отчет составляется"
 	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm run test:coverage
 	@echo "отчет доступен в папке coverage/lcov-report/index.html"
