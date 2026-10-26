@@ -123,7 +123,10 @@ const text = (field, max) =>
 // ВАЖНО: эта строка должна быть здесь!
 const idParam = positiveInt('id');
 
-const genreCreate = z.object({ name: text('name', 120) });
+const genreCreate = z.object({ 
+  name: text('name', 120),
+  comment: z.string().max(2000).optional().nullable(),
+});
 const genreUpdate = genreCreate.partial().refine((v) => Object.keys(v).length > 0, {
   message: 'Нужно передать хотя бы одно поле',
 });
@@ -131,7 +134,8 @@ const genreUpdate = genreCreate.partial().refine((v) => Object.keys(v).length > 
 const musicianCreate = z.object({
   name: text('name', 200),
   country: z.string().trim().max(100).optional().nullable(),
-  notes: z.string().trim().max(2000).optional().nullable(),
+  //notes: z.string().trim().max(2000).optional().nullable(),
+  comment: z.string().max(2000).optional().nullable(),
 });
 const musicianUpdate = musicianCreate.partial().refine((v) => Object.keys(v).length > 0, {
   message: 'Нужно передать хотя бы одно поле',
@@ -141,6 +145,7 @@ const recordCreate = z.object({
   title: text('title', 200),
   musician_id: positiveInt('musician_id'),
   genre_id: positiveInt('genre_id'),
+  comment: z.string().max(2000).optional().nullable(),
   price: numeric('price', (schema) =>
     schema
       .refine((val) => val > 0, 'Поле «price» должно быть больше нуля')
