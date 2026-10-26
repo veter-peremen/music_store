@@ -24,39 +24,15 @@ const toNumber = (value) => {
  * понять, что поле просто забыли. Здесь наличие проверяется до приведения.
  */
 const numeric = (field, refine = (schema) => schema) =>
-  z.any().superRefine((value, ctx) => {
-    // 1. Проверяем наличие поля
-    if (value === undefined || value === null) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Поле «${field}» обязательно`,
-      });
-      return z.NEVER;
-    }
-
-    // 2. Приводим к числу
-    const num = toNumber(value);
-
-    // 3. Проверяем, что получилось число
-    if (typeof num !== 'number' || Number.isNaN(num)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `Поле «${field}» должно быть числом`,
-      });
-      return z.NEVER;
-    }
-
-    // 4. Применяем дополнительные проверки (int, positive и т.д.)
-    const result = refine(z.number()).safeParse(num);
-    if (!result.success) {
-      result.error.issues.forEach((issue) => {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: issue.message,
-        });
-      });
-    }
-  });
+  z.preprocess(
+    toNumber,
+    refine(
+      z.number({
+        required_error: `Поле «${field}» обязательно`,
+        invalid_type_error: `Поле «${field}» должно быть числом`,
+      }),
+    ),
+  );
 
 /** Целый положительный идентификатор или количество. */
 const positiveInt = (field) =>
