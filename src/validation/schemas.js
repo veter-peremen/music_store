@@ -120,6 +120,14 @@ const text = (field, max) =>
     return trimmed;
   });
 
+// ВАЖНО: эта строка должна быть здесь!
+const idParam = positiveInt('id');
+
+const genreCreate = z.object({ name: text('name', 120) });
+const genreUpdate = genreCreate.partial().refine((v) => Object.keys(v).length > 0, {
+  message: 'Нужно передать хотя бы одно поле',
+});
+
 const musicianCreate = z.object({
   name: text('name', 200),
   country: z.string().trim().max(100).optional().nullable(),
