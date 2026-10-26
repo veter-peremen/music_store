@@ -1,4 +1,4 @@
-.PHONY: help setup deploy start stop restart status migrate rollback lint verify test test:coverage test:db:setup test:db:clean test:db:migrate test:db:rollback lint lint:fix
+.PHONY: help setup deploy start stop restart status migrate rollback verify test test:coverage test:db:setup test:db:clean test:db:migrate test:db:rollback lint lint:fix
 
 
 TEST_DB_NAME ?= music_store_test
