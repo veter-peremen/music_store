@@ -153,12 +153,13 @@ async function loadRecords() {
 
     cell(row, nameById(cache.musicians, record.musician_id));
     cell(row, nameById(cache.genres, record.genre_id));
-    cell(row, money(record.price), 'num');
-    cell(row, record.stock, 'num');
     const recordCommentCell = row.insertCell();
     if (record.comment && record.comment.trim() !== '') {
       recordCommentCell.textContent = record.comment;
     }
+    cell(row, money(record.price), 'num');
+    cell(row, record.stock, 'num');
+    
     if (!canWrite()) return;
     const actions = actionsCell(row);
     if (record.archived_at) {
