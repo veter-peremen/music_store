@@ -1,4 +1,4 @@
-.PHONY: help setup deploy start stop restart status migrate rollback test test\:coverage test\:db\:setup test\:db\:clean test\:db\:migrate test\:db\:rollback lint lint\:fix
+.PHONY: help setup deploy start stop restart status migrate rollback test test-coverage test-db-setup test-db-clean test-db-migrate test-db-rollback lint lint-fix
 
 
 TEST_DB_NAME ?= music_store_test
@@ -15,13 +15,13 @@ help:
 	@echo "migrate		- провести миграцию"
 	@echo "rollback 	- откат миграции"
 	@echo "test 	- запуск теста"
-	@echo "test:coverage 	- анализ покрытия тестирования"
-	@echo "test:db:setup 	- создание тестовой базы"
-	@echo "test:db:clean 	- очистка тестовой базы"
-	@echo "test:db:migrate 	- провести миграцию на тестовую базу"
-	@echo "test:db:rollback 	- откат миграции на тестовой базе"
+	@echo "test-coverage 	- анализ покрытия тестирования"
+	@echo "test-db-setup 	- создание тестовой базы"
+	@echo "test-db-clean 	- очистка тестовой базы"
+	@echo "test-db-migrate 	- провести миграцию на тестовую базу"
+	@echo "test-db-rollback 	- откат миграции на тестовой базе"
 	@echo "lint 	- линт-тест кода"
-	@echo "lint:fix 	- линт-тест с исправлениями"
+	@echo "lint-fix 	- линт-тест с исправлениями"
 	@echo "verify		- полная проверка"
 
 setup:
@@ -60,12 +60,12 @@ test:
 	@echo "запускаем тесты"
 	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm test
 
-test:coverage: 
+test-coverage: 
 	@echo "тесты coverage запущены, отчет составляется"
 	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npm run test:coverage
 	@echo "отчет доступен в папке coverage/lcov-report/index.html"
 
-test:db:setup:
+test-db-setup:
 	@echo "🛠️  Проверяем и создаем тестовую базу данных '$(TEST_DB_NAME)'..."
 	@sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '$(TEST_DB_NAME)'" | grep -q 1 || \
 		(sudo -u postgres psql -c "CREATE DATABASE $(TEST_DB_NAME) OWNER $(DB_USER);" && \
@@ -74,19 +74,19 @@ test:db:setup:
 	NODE_ENV=$(NODE_ENV_TEST) DB_NAME=$(TEST_DB_NAME) npx knex migrate:latest
 	@echo "тестовая база готова"
 
-test:db:clean:
+test-db-clean:
 	npm run db:test:clean
 
-test:db:migrate:
+test-db-migrate:
 	npm run db:test:migrate
 
-test:db:rollback:
+test-db-rollback:
 	npm run db:test:migrate:rollback
 
 lint:
 	eslint .
 
-lint:fix:
+lint-fix:
 	eslint . -- fix
 
 
