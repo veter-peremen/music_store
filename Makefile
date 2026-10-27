@@ -4,6 +4,7 @@
 TEST_DB_NAME ?= music_store_test
 DB_USER ?= ozzy
 NODE_ENV_TEST = test
+RESULTS_DIR := test-res
 
 help:
 	@echo "setup    			- первоначальная настройка проекта"
@@ -99,10 +100,12 @@ quality:
 	npm run format:check
 
 verify:
-	@mkdir -p test-res
+	@mkdir -p $(RESULTS_DIR)
 	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
-	FILE="test-res/test_result_$$TIMESTAMP.txt"; \
-	$(MAKE) quality >> $$FILE && \
-	$(MAKE) test-coverage >> $$FILE && \
+	FILE="$(RESULTS_DIR)/test_result_$$TIMESTAMP.txt"; \
+	export FORCE_COLOR=1; \
+	$(MAKE) quality 2>&1 | tee $$FILE; \
+	$(MAKE) test-coverage 2>&1 | tee -a $$FILE; \
+	echo ""; \
 	echo "результаты сохранены в $$FILE"
 
