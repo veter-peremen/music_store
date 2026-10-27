@@ -98,5 +98,11 @@ quality:
 	npm run lint
 	npm run format:check
 
-verify: quality test-coverage
+verify:
+	@mkdir -p test-res
+	@TIMESTAMP=$$(date +%Y%m%d_%H%M%S); \
+	FILE="test-res/test_result_$$TIMESTAMP.txt"; \
+	$(MAKE) quality >> $$FILE && \
+	$(MAKE) test-coverage >> $$FILE && \
+	echo "результаты сохранены в $$FILE"
 
