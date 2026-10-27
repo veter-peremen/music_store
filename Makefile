@@ -98,5 +98,5 @@ quality:
 	npm run lint
 	npm run format:check
 
-verify: lint quality test-coverage
+verify: quality test-coverage
 
