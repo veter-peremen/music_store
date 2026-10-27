@@ -1,4 +1,4 @@
-.PHONY: help setup deploy start stop restart status migrate rollback test test-coverage test-db-setup test-db-clean test-db-migrate test-db-rollback lint lint-fix quality verify
+.PHONY: help setup deploy start stop restart status migrate rollback test test-coverage test-db-setup test-db-clean test-db-migrate test-db-rollback lint lint-fix format quality verify
 
 
 TEST_DB_NAME ?= music_store_test
@@ -22,6 +22,7 @@ help:
 	@echo "test-db-rollback 	- откат миграции на тестовой базе"
 	@echo "lint 				- линт-тест кода"
 	@echo "lint-fix 			- линт-тест с исправлениями"
+	@echo "format				- проверка формата кода"
 	@echp "quality				- проверка качества"
 	@echo "verify				- полная проверка"
 
@@ -85,12 +86,16 @@ test-db-rollback:
 	npm run db:test:migrate:rollback
 
 lint:
-	eslint .
+	npm run lint
 
 lint-fix:
-	eslint . -- fix
+	npm run lint:fix
+
+format:
+	npm run format:check
 
 quality:
+	npm run lint
 	npm run format:check
 
 verify: lint quality test-coverage
